@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
-using System.Threading.Tasks;
 using Data.Entity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -11,9 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.DependencyModel;
-using Service.Category.Handlers;
-using Service.Category.Queries;
 using Service.Common;
 using Service.Common.QueryHandlerDecorators;
 
@@ -33,23 +30,6 @@ namespace Application.Api
 
         public IConfigurationRoot Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddDbContext<HouseKeeperContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("HouseKeeping")));
-
-            services.AddSingleton<IHouseKeeperContext>((service) => service.GetService<HouseKeeperContext>());
-
-            services.AddSingleton<IServiceManager>((service) => new ServiceManager(service));
-
-            //  RegisterQueryHandlerDecorators(services);
-            RegisterQueryHandlers(services);
-
-            // Add framework services.
-            services.AddMvc();
-        }
-
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
@@ -59,97 +39,108 @@ namespace Application.Api
             app.UseMvc();
         }
 
-        private void RegisterQueryHandlers(IServiceCollection service)
+        // This method gets called by the runtime. Use this method to add services to the container.
+        public void ConfigureServices(IServiceCollection services)
         {
-            var assemblies = DependencyContext.Default.GetDefaultAssemblyNames()
-                .Where(a => a.FullName.StartsWith("Service.") && !a.FullName.StartsWith("Service.Common")).ToList();
+            services.AddDbContext<HouseKeeperContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("HouseKeeping")));
 
-            foreach (var assemblyName in assemblies)
+            services.AddSingleton<IHouseKeeperContext>(service => service.GetService<HouseKeeperContext>());
+
+            services.AddSingleton<IServiceManager>(service => new ServiceManager(service));
+            
+            // Register all the query handlers with the related decoracors
+            RegisterQueryHandlers(services);
+
+            // Add framework services.
+            services.AddMvc();
+        }
+
+        private static void RegisterQueryHandlers(IServiceCollection services)
+        {
+            foreach (var assembly in AssembliesWithHandlers)
             {
-                var assembly = Assembly.Load(assemblyName);
-
-                var queryHandlers = assembly.GetTypes()
-                    .Where(t => t.GetInterfaces().Any(i => i.GetTypeInfo().IsGenericType &&
-                                                           i.GetGenericTypeDefinition() == typeof(IQueryHandler<,>)));
+                var queryHandlers = HandlersImplementingInterfaceInAssembly(assembly, typeof(IQueryHandler<,>));
 
                 foreach (var handlerType in queryHandlers)
                 {
-                    var interfaceType = handlerType.GetInterfaces().FirstOrDefault(i => i.GetTypeInfo().IsGenericType &&
-                                                                               i.GetGenericTypeDefinition() == typeof(IQueryHandler<,>));
+                    var interfaceType = GetInterfaceInType(handlerType, typeof(IQueryHandler<,>));
 
-                    service.Add(new ServiceDescriptor(interfaceType, handlerType, ServiceLifetime.Transient));
-                }
-            }
-        }
-    
-        private void RegisterQueryHandlerDecorators(IServiceCollection service)
-        {
-            var assemblies = DependencyContext.Default.GetDefaultAssemblyNames().Where(a => a.FullName.StartsWith("Service.")).ToList();
-            
-            foreach (AssemblyName assemblyName in assemblies)
-            {
-                Assembly assemblyWithQueryHandlers = Assembly.Load(assemblyName);
+                    // Register the handler by it's interface
+                    services.Add(new ServiceDescriptor(interfaceType, handlerType, ServiceLifetime.Transient));
 
-                // First decorator registered is the first decorator called
-//                RegisterQueryHandlerDecoratorsForAssembly(service, assemblyWithQueryHandlers, typeof(LoggingQueryHandlerDecorator<,>), typeof(IQueryHandler<,>));
-//                RegisterQueryHandlerDecoratorsForAssembly(service, assemblyWithQueryHandlers, typeof(TransactionalQueryHandlerDecorator<,>), typeof(IQueryHandler<,>));
+                    // Register the handler by it's own type
+                    services.Add(new ServiceDescriptor(handlerType, handlerType, ServiceLifetime.Transient));
 
-//                var handlerTypes = (from t in assemblyWithQueryHandlers.GetTypes()
-//                    let iHandlers = t.GetInterfaces().SingleOrDefault(i => i.GetTypeInfo().IsGenericType && i.GetGenericTypeDefinition() == typeof(IQueryHandler<,>))
-//                    where t.GetTypeInfo().IsClass && !t.GetTypeInfo().IsAbstract && iHandlers != null
-//                    select iHandlers).ToList();
-//
-//                foreach (var handlerType in handlerTypes)
-//                {
-//                    service.Add(new ServiceDescriptor(typeof(IQueryHandler<,>), handlerType, ServiceLifetime.Transient));
-//                }
-            }
-        }
-
-        private void RegisterDecoratorType(IServiceCollection service, Type decoratorType, Type handlerType)
-        {
-            service.AddTransient(decoratorType, decoratorType.MakeGenericType(handlerType.GetGenericArguments()));
-        }
-        
-        private void RegisterQueryHandlerDecoratorsForAssembly(IServiceCollection service, Assembly assemblyWithHandlers, Type decoratorType, Type decoratorTarget, List<Type> requiredAttribute = null)
-        {
-            // Get all the handlers in the assembly
-            var handlerTypes = (from t in assemblyWithHandlers.GetTypes()
-                let iHandlers = t.GetInterfaces().SingleOrDefault(i => i.GetTypeInfo().IsGenericType && i.GetGenericTypeDefinition() == decoratorTarget)
-                where t.GetTypeInfo().IsClass && !t.GetTypeInfo().IsAbstract && !decoratorType.IsAssignableFrom(t) && iHandlers != null
-                select iHandlers).ToList();
-
-            if (handlerTypes.Any())
-            {
-                foreach (var handlerType in handlerTypes)
-                {
-                    if (requiredAttribute == null || !requiredAttribute.Any())
+                    foreach (var descriptor in services.GetDescriptors(interfaceType))
                     {
-                        RegisterDecoratorType(service, decoratorType, handlerType);
-                        continue;
-                    }
-
-                    // Get the Handler generic types
-                    var genericTypeArguments = handlerType.GenericTypeArguments;
-
-                    // Chek if has IQuery as generic type
-                    var hasICommandGenericType = genericTypeArguments.Any(g => g.GetInterfaces().Any(i => i == typeof(IQuery<>)));
-
-                    if (hasICommandGenericType)
-                    {
-                        // Get the command generic type
-                        var queryGenericTypeArgument = genericTypeArguments.FirstOrDefault(a => a.GetInterfaces().Any(i => i == typeof(IQuery<>)));
-                        if (queryGenericTypeArgument != null)
+                        object Factory(IServiceProvider serviceProvider)
                         {
-                            // Check if has an attribute that need to be excluded
-                            if (queryGenericTypeArgument.GetTypeInfo().CustomAttributes.Any(a => requiredAttribute.Any(l => l == a.AttributeType)))
-                            {
-                                RegisterDecoratorType(service, decoratorType, handlerType);
-                            }
+                            // Get the instance of the handler using the current descriptor
+                            var handler = serviceProvider.GetService(descriptor.ImplementationType);
+
+                            // Create the decorator type including generic types
+                            var loggingDecoratorType = typeof(LoggingQueryHandlerDecorator<,>).MakeGenericType(interfaceType.GetGenericArguments());
+
+                            return Activator.CreateInstance(loggingDecoratorType, handler);
                         }
+
+                        services.Replace(ServiceDescriptor.Describe(descriptor.ServiceType, Factory, ServiceLifetime.Transient));
+                    }
+
+                    foreach (var descriptor in services.GetDescriptors(interfaceType))
+                    {
+                        object Factory(IServiceProvider serviceProvider)
+                        {
+                            // Get the instance of the previous decorator
+                            var handler = descriptor.ImplementationFactory(serviceProvider);
+                            
+                            // Create the decorator type including generic types
+                            var transactionDecoratorType = typeof(TransactionalQueryHandlerDecorator<,>).MakeGenericType(interfaceType.GetGenericArguments());
+
+                            return Activator.CreateInstance(transactionDecoratorType, handler);
+                        }
+
+                        services.Replace(ServiceDescriptor.Describe(descriptor.ServiceType, Factory, ServiceLifetime.Transient));
                     }
                 }
             }
+        }
+
+        private static Type GetInterfaceInType(Type handlerType, Type handlerInferface) => 
+            handlerType.GetInterfaces().FirstOrDefault(i => i.GetTypeInfo().IsGenericType && i.GetGenericTypeDefinition() == handlerInferface);
+
+        private static IEnumerable<Type> HandlersImplementingInterfaceInAssembly(Assembly assembly, Type handlerInferface) => 
+            assembly.GetTypes().Where(t => t.GetInterfaces().Any(i => i.GetTypeInfo().IsGenericType &&
+                                                   i.GetGenericTypeDefinition() == handlerInferface));
+
+        private static IEnumerable<Assembly> AssembliesWithHandlers
+        {
+            get
+            {
+                var assemblies = DependencyContext.Default.GetDefaultAssemblyNames()
+                    .Where(a => a.FullName.StartsWith("Service.") && !a.FullName.StartsWith("Service.Common")).ToList();
+
+                foreach (var assemblyName in assemblies)
+                {
+                    yield return Assembly.Load(assemblyName);
+                }
+            }
+        }
+    }
+
+    public static class ServiceCollectionExtensions
+    {
+        public static List<ServiceDescriptor> GetDescriptors(this IServiceCollection services, Type serviceType)
+        {
+            var descriptors = services.Where(service => service.ServiceType == serviceType).ToList();
+
+            if (descriptors.Count == 0)
+            {
+                throw new InvalidOperationException($"Unable to find registered services for the type '{serviceType.FullName}'");
+            }
+
+            return descriptors;
         }
     }
 }
