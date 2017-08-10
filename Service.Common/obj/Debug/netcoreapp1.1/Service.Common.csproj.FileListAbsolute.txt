@@ -1,0 +1,9 @@
+D:\Projects\HouseKeeping\Service.Common\bin\Debug\netcoreapp1.1\Service.Common.deps.json
+D:\Projects\HouseKeeping\Service.Common\obj\Debug\netcoreapp1.1\Service.Common.csprojResolveAssemblyReference.cache
+D:\Projects\HouseKeeping\Service.Common\obj\Debug\netcoreapp1.1\Service.Common.AssemblyInfo.cs
+D:\Projects\HouseKeeping\Service.Common\bin\Debug\netcoreapp1.1\Service.Common.dll
+D:\Projects\HouseKeeping\Service.Common\bin\Debug\netcoreapp1.1\Service.Common.pdb
+D:\Projects\HouseKeeping\Service.Common\obj\Debug\netcoreapp1.1\Service.Common.dll
+D:\Projects\HouseKeeping\Service.Common\obj\Debug\netcoreapp1.1\Service.Common.pdb
+D:\Projects\HouseKeeping\Service.Common\bin\Debug\netcoreapp1.1\Common.Validation.dll
+D:\Projects\HouseKeeping\Service.Common\bin\Debug\netcoreapp1.1\Common.Validation.pdb

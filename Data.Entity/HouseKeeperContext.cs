@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Data.Entity
 {
-    public class HouseKeepingContext : DbContext
+    public class HouseKeeperContext : DbContext, IHouseKeeperContext
     {
-        public HouseKeepingContext(DbContextOptions options) : base(options)
+        public HouseKeeperContext(DbContextOptions options) : base(options)
         {
         }
 

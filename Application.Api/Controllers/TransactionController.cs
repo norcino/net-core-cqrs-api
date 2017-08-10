@@ -3,17 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using Data.Entity;
 using Microsoft.AspNetCore.Mvc;
+using Service.Common;
 
 namespace Application.Api.Controllers
 {
     [Route("api/[controller]")]
     public class TransactionController : Controller
     {
-        private readonly HouseKeepingContext _context;
+        private readonly HouseKeeperContext _context;
+        private readonly IServiceManager _serviceManager;
 
-        public TransactionController(HouseKeepingContext context)
+        public TransactionController(IServiceManager serviceManager, HouseKeeperContext context)
         {
             _context = context;
+            _serviceManager = serviceManager;
         }
         
         [HttpGet]
