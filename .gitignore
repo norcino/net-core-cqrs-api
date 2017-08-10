@@ -1,0 +1,5 @@
+.vs/
+Application.Api/obj/
+Application.Api/bin/
+Data.Entity/bin/
+Data.Entity/obj/
