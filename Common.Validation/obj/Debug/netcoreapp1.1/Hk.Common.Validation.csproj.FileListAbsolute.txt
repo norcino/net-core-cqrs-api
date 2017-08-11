@@ -1,6 +1,0 @@
-D:\Projects\HouseKeeping\Common.Validation\bin\Debug\netcoreapp1.1\Hk.Common.Validation.deps.json
-D:\Projects\HouseKeeping\Common.Validation\bin\Debug\netcoreapp1.1\Hk.Common.Validation.dll
-D:\Projects\HouseKeeping\Common.Validation\bin\Debug\netcoreapp1.1\Hk.Common.Validation.pdb
-D:\Projects\HouseKeeping\Common.Validation\obj\Debug\netcoreapp1.1\Hk.Common.Validation.AssemblyInfo.cs
-D:\Projects\HouseKeeping\Common.Validation\obj\Debug\netcoreapp1.1\Hk.Common.Validation.dll
-D:\Projects\HouseKeeping\Common.Validation\obj\Debug\netcoreapp1.1\Hk.Common.Validation.pdb
