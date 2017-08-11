@@ -9,11 +9,11 @@ namespace Service.Common
 
     public interface IQueryWithTransactionIsolationLevelOverride<TResult> : IQuery<TResult>
     {
-      //TODO  IsolationLevel? IsolationLevel { get; set; }
+        //IsolationLevel? IsolationLevel { get; set; }
     }
 
     public interface IQueryWithTransactionScopeOptionOverride<TResult> : IQuery<TResult>
     {
-      //TODO  TransactionScopeOption? TransactionScopeOption { get; set; }
+        //TransactionScopeOption? TransactionScopeOption { get; set; }
     }
 }
