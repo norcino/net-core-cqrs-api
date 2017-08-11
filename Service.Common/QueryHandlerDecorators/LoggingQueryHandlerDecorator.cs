@@ -8,7 +8,7 @@ namespace Service.Common.QueryHandlerDecorators
     public class LoggingQueryHandlerDecorator<TQuery, TResult> : QueryHandlerDecoratorBase<TQuery, TResult>, IQueryHandler<TQuery, TResult>
         where TQuery : IQuery<TResult>
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<LoggingQueryHandlerDecorator<TQuery, TResult>> _logger;
 
         public LoggingQueryHandlerDecorator(IQueryHandler<TQuery, TResult> decoratedQueryHandler, ILogger<LoggingQueryHandlerDecorator<TQuery, TResult>> logger) : base(decoratedQueryHandler)
         {

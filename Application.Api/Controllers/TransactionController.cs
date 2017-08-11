@@ -1,34 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Data.Entity;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Service.Common;
+using Service.Transaction.Queries;
 
 namespace Application.Api.Controllers
 {
     [Route("api/[controller]")]
     public class TransactionController : Controller
     {
-        private readonly HouseKeeperContext _context;
         private readonly IServiceManager _serviceManager;
 
-        public TransactionController(IServiceManager serviceManager, HouseKeeperContext context)
+        public TransactionController(IServiceManager serviceManager)
         {
-            _context = context;
             _serviceManager = serviceManager;
         }
-        
-        [HttpGet]
-        public IEnumerable<Transaction> Get()
-        {
-            return _context.Transactions.ToList();
-        }
-        
+
         [HttpGet("{id}")]
-        public ActionResult Get(int id)
+        public async Task<ActionResult> GetAsync(int id)
         {
-            var result = _context.Transactions.SingleOrDefault(c => c.Id == id);
+            var result = await _serviceManager.ProcessQueryAsync(new GetTransactionByIdQuery(id));
 
             if (result == null)
             {

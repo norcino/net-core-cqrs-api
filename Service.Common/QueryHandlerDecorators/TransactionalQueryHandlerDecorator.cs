@@ -2,18 +2,19 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Service.Common.QueryHandlerDecorators
 {
     public class TransactionalQueryHandlerDecorator<TQuery, TResult> : QueryHandlerDecoratorBase<TQuery, TResult>,
         IQueryHandler<TQuery, TResult> where TQuery : IQuery<TResult>
     {
-       // private readonly ILogger _logger;
+        private readonly ILogger<TransactionalQueryHandlerDecorator<TQuery, TResult>> _logger;
 
-        public TransactionalQueryHandlerDecorator(IQueryHandler<TQuery, TResult> decoratedQueryHandler)//, ILogger logger)
+        public TransactionalQueryHandlerDecorator(IQueryHandler<TQuery, TResult> decoratedQueryHandler, ILogger<TransactionalQueryHandlerDecorator<TQuery, TResult>> logger)
             : base(decoratedQueryHandler)
         {
-        //    _logger = logger;
+            _logger = logger;
         }
 
         public async Task<TResult> HandleAsync(TQuery query)

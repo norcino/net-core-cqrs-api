@@ -18,7 +18,7 @@ namespace Application.Api
 {
     public class Startup
     {
-        private ILogger _logger;
+        private readonly ILogger<Startup> _logger;
 
         public Startup(IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
@@ -83,42 +83,35 @@ namespace Application.Api
 
                     // Register the handler by it's own type
                     services.Add(new ServiceDescriptor(handlerType, handlerType, ServiceLifetime.Transient));
-
-                    foreach (var descriptor in services.GetDescriptors(interfaceType))
-                    {
-                        object Factory(IServiceProvider serviceProvider)
-                        {
-                            // Get the instance of the handler using the current descriptor
-                            var handler = serviceProvider.GetService(descriptor.ImplementationType);
-
-                            // Create the decorator type including generic types
-                            var loggingDecoratorType = typeof(LoggingQueryHandlerDecorator<,>).MakeGenericType(interfaceType.GetGenericArguments());
-
-                            // Create the logger type
-                            var loggerType = typeof(ILogger<>).MakeGenericType(loggingDecoratorType);
-
-                            return Activator.CreateInstance(loggingDecoratorType, handler, serviceProvider.GetService(loggerType));
-                        }
-
-                        services.Replace(ServiceDescriptor.Describe(descriptor.ServiceType, Factory, ServiceLifetime.Transient));
-                    }
-
-                    foreach (var descriptor in services.GetDescriptors(interfaceType))
-                    {
-                        object Factory(IServiceProvider serviceProvider)
-                        {
-                            // Get the instance of the previous decorator
-                            var handler = descriptor.ImplementationFactory(serviceProvider);
-                            
-                            // Create the decorator type including generic types
-                            var transactionDecoratorType = typeof(TransactionalQueryHandlerDecorator<,>).MakeGenericType(interfaceType.GetGenericArguments());
-
-                            return Activator.CreateInstance(transactionDecoratorType, handler);
-                        }
-
-                        services.Replace(ServiceDescriptor.Describe(descriptor.ServiceType, Factory, ServiceLifetime.Transient));
-                    }
+                    
+                    DecorateHandlerdescriptors(services, interfaceType, typeof(TransactionalQueryHandlerDecorator<,>));
+                    DecorateHandlerdescriptors(services, interfaceType, typeof(ExceptionQueryHandlerDecorator<,>));
+                    DecorateHandlerdescriptors(services, interfaceType, typeof(LoggingQueryHandlerDecorator<,>));
                 }
+            }
+        }
+
+        private static void DecorateHandlerdescriptors(IServiceCollection services, Type interfaceType, Type genericDecoratorType)
+        {
+            foreach (var descriptor in services.GetDescriptors(interfaceType))
+            {
+                object Factory(IServiceProvider serviceProvider)
+                {
+                    // Get the instance of the previous decorator
+                    var handler = descriptor.ImplementationType != null ?
+                        serviceProvider.GetService(descriptor.ImplementationType) : // Used when decorating the handler the first time
+                        descriptor.ImplementationFactory(serviceProvider); // Used when decorating another decorator
+
+                    // Create the decorator type including generic types
+                    var decoratorType = genericDecoratorType.MakeGenericType(interfaceType.GetGenericArguments());
+
+                    // Create the logger type
+                    var loggerType = typeof(ILogger<>).MakeGenericType(decoratorType);
+
+                    return Activator.CreateInstance(decoratorType, handler, serviceProvider.GetService(loggerType));
+                }
+
+                services.Replace(ServiceDescriptor.Describe(descriptor.ServiceType, Factory, ServiceLifetime.Transient));
             }
         }
 
