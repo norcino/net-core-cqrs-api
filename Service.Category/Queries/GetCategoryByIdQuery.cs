@@ -1,4 +1,5 @@
-﻿using Service.Common;
+﻿using Common.Log;
+using Service.Common;
 
 namespace Service.Category.Queries
 {
@@ -9,6 +10,12 @@ namespace Service.Category.Queries
         public GetCategoryByIdQuery(int categoryId)
         {
             CategoryId = categoryId;
+        }
+        
+        public LogInfo ToLog()
+        {
+            const string template = "CategoryId: {CategoryId}";
+            return new LogInfo(template, CategoryId);
         }
     }
 }

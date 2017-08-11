@@ -18,8 +18,12 @@ namespace Application.Api
 {
     public class Startup
     {
-        public Startup(IHostingEnvironment env)
+        private ILogger _logger;
+
+        public Startup(IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            _logger = loggerFactory.CreateLogger<Startup>();
+
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -35,6 +39,14 @@ namespace Application.Api
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
+
+            app.UseCors(builder =>
+            {
+                builder.AllowAnyOrigin();
+                builder.AllowAnyHeader();
+                builder.AllowAnyMethod();
+                builder.AllowCredentials();
+            });
 
             app.UseMvc();
         }
@@ -82,7 +94,10 @@ namespace Application.Api
                             // Create the decorator type including generic types
                             var loggingDecoratorType = typeof(LoggingQueryHandlerDecorator<,>).MakeGenericType(interfaceType.GetGenericArguments());
 
-                            return Activator.CreateInstance(loggingDecoratorType, handler);
+                            // Create the logger type
+                            var loggerType = typeof(ILogger<>).MakeGenericType(loggingDecoratorType);
+
+                            return Activator.CreateInstance(loggingDecoratorType, handler, serviceProvider.GetService(loggerType));
                         }
 
                         services.Replace(ServiceDescriptor.Describe(descriptor.ServiceType, Factory, ServiceLifetime.Transient));

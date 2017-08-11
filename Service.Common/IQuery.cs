@@ -1,8 +1,10 @@
-﻿namespace Service.Common
+﻿using Common.Log;
+
+namespace Service.Common
 {
     public interface IQuery<TResult>
     {
-        //TODO LogInfo ToLog();
+        LogInfo ToLog();
     }
 
     public interface IQueryWithTransactionIsolationLevelOverride<TResult> : IQuery<TResult>
