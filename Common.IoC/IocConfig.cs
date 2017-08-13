@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Data.Context;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -13,6 +15,18 @@ namespace Common.IoC
 {
     public class IocConfig
     {
+        public static void RegisterContext(IServiceCollection services, string connectionString)
+        {
+            services.AddDbContext<HouseKeeperContext>(options => options.UseSqlServer(connectionString));
+
+            services.AddSingleton<IHouseKeeperContext>(service => service.GetService<HouseKeeperContext>());
+        }
+
+        public static void RegisterServiceManager(IServiceCollection services)
+        {
+            services.AddSingleton<IServiceManager>(service => new ServiceManager(service));
+        }
+
         public static void RegisterQueryHandlers(IServiceCollection services)
         {
             foreach (var assembly in AssembliesWithHandlers)
@@ -32,6 +46,29 @@ namespace Common.IoC
                     DecorateHandlerdescriptors(services, interfaceType, typeof(TransactionalQueryHandlerDecorator<,>));
                     DecorateHandlerdescriptors(services, interfaceType, typeof(ExceptionQueryHandlerDecorator<,>));
                     DecorateHandlerdescriptors(services, interfaceType, typeof(LoggingQueryHandlerDecorator<,>));
+                }
+            }
+        }
+
+        public static void RegisterCommandHandlers(ServiceCollection services)
+        {
+            foreach (var assembly in AssembliesWithHandlers)
+            {
+                var commandHandlers = HandlersImplementingInterfaceInAssembly(assembly, typeof(ICommandHandler<>));
+
+                foreach (var handlerType in commandHandlers)
+                {
+                    var interfaceType = GetInterfaceInType(handlerType, typeof(ICommandHandler<>));
+
+                    // Register the handler by it's interface
+                    services.Add(new ServiceDescriptor(interfaceType, handlerType, ServiceLifetime.Transient));
+
+                    // Register the handler by it's own type
+                    services.Add(new ServiceDescriptor(handlerType, handlerType, ServiceLifetime.Transient));
+
+//                    DecorateHandlerdescriptors(services, interfaceType, typeof(TransactionalQueryHandlerDecorator<,>));
+//                    DecorateHandlerdescriptors(services, interfaceType, typeof(ExceptionQueryHandlerDecorator<,>));
+//                    DecorateHandlerdescriptors(services, interfaceType, typeof(LoggingQueryHandlerDecorator<,>));
                 }
             }
         }
@@ -63,12 +100,12 @@ namespace Common.IoC
                 }
             }
 
-            private static Type GetInterfaceInType(Type handlerType, Type handlerInferface) =>
+        private static Type GetInterfaceInType(Type handlerType, Type handlerInferface) =>
                 handlerType.GetInterfaces()
                     .FirstOrDefault(i => i.GetTypeInfo().IsGenericType &&
                                          i.GetGenericTypeDefinition() == handlerInferface);
 
-            private static IEnumerable<Type> HandlersImplementingInterfaceInAssembly(Assembly assembly,
+        private static IEnumerable<Type> HandlersImplementingInterfaceInAssembly(Assembly assembly,
                 Type handlerInferface) =>
                 assembly.GetTypes().Where(t => t.GetInterfaces().Any(i => i.GetTypeInfo().IsGenericType &&
                                                                           i.GetGenericTypeDefinition() ==

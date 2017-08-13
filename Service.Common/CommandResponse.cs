@@ -3,7 +3,19 @@ using System.Collections.Generic;
 
 namespace Service.Common
 {
-    public class CommandResponse
+    public interface ICommandResponse
+    {
+        bool Successful { get; set; }
+
+        List<ValidationEntry> ValidationEntries { get; set; }
+    }
+
+    public interface ICommandResponse<out TResult> : ICommandResponse
+    {
+        TResult Result { get; }
+    }
+
+    public class CommandResponse : ICommandResponse
     {
         public bool Successful { get; set; }
 
@@ -15,7 +27,7 @@ namespace Service.Common
         }
     }
 
-    public class CommandResponse<TResult> : CommandResponse
+    public class CommandResponse<TResult> : CommandResponse, ICommandResponse<TResult>
     {
         public TResult Result { get; }
 

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Data.Context
 {
@@ -11,6 +11,8 @@ namespace Data.Context
 //        bool AutoDetectChangesEnabled { get; set; }
 //        void SetEntityState(object entity, EntityState state);
         int SaveChanges();
+
+        DatabaseFacade Database { get; }
 
         Task<int> SaveChangesAsync();
     }

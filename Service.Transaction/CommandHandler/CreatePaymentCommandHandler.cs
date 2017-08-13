@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Data.Context;
 using Service.Common;
 using Service.Payment.Command;
@@ -17,12 +14,12 @@ namespace Service.Payment.CommandHandler
             _context = context;
         }
 
-        public async Task<CommandResponse> HandleAsync(CreatePaymentCommand command)
+        public async Task<ICommandResponse> HandleAsync(CreatePaymentCommand command)
         {
             await _context.Payments.AddAsync(command.Payment);
             var result = await _context.SaveChangesAsync();
 
-            return new CommandResponse
+            return new CommandResponse<int>(result)
             {
                 Successful = true
             };

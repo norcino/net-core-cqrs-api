@@ -7,7 +7,7 @@ namespace Service.Payment.Command
     {
         public Data.Entity.Payment Payment { get; set; }
 
-        protected CreatePaymentCommand(Data.Entity.Payment payment)
+        public CreatePaymentCommand(Data.Entity.Payment payment)
         {
             Payment = payment;
         }

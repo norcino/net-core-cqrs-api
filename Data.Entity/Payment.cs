@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Data.Entity
 {
-    public partial class Payment
+    public class Payment
     {
         public int Id { get; set; }
         public DateTime Recorded { get; set; }

@@ -1,18 +1,16 @@
 ﻿using Common.IoC;
-using Data.Context;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
-using Service.Common;
 
 namespace Application.Api
 {
     public class Startup
     {
         private readonly ILogger<Startup> _logger;
+        public IConfigurationRoot Configuration { get; }
 
         public Startup(IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
@@ -25,9 +23,7 @@ namespace Application.Api
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
         }
-
-        public IConfigurationRoot Configuration { get; }
-
+        
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
@@ -48,13 +44,12 @@ namespace Application.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<HouseKeeperContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("HouseKeeping")));
+            // Entity Framework context registration
+            IocConfig.RegisterContext(services, Configuration.GetConnectionString("HouseKeeping"));
 
-            services.AddSingleton<IHouseKeeperContext>(service => service.GetService<HouseKeeperContext>());
+            // Register service manager
+            IocConfig.RegisterServiceManager(services);
 
-            services.AddSingleton<IServiceManager>(service => new ServiceManager(service));
-            
             // Register all the query handlers with the related decoracors
             IocConfig.RegisterQueryHandlers(services);
 
