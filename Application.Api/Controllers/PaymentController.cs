@@ -2,16 +2,16 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Service.Common;
-using Service.Transaction.Queries;
+using Service.Payment.Query;
 
 namespace Application.Api.Controllers
 {
     [Route("api/[controller]")]
-    public class TransactionController : Controller
+    public class PaymentController : Controller
     {
         private readonly IServiceManager _serviceManager;
 
-        public TransactionController(IServiceManager serviceManager)
+        public PaymentController(IServiceManager serviceManager)
         {
             _serviceManager = serviceManager;
         }
@@ -19,7 +19,7 @@ namespace Application.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult> GetAsync(int id)
         {
-            var result = await _serviceManager.ProcessQueryAsync(new GetTransactionByIdQuery(id));
+            var result = await _serviceManager.ProcessQueryAsync(new GetPaymentByIdQuery(id));
 
             if (result == null)
             {

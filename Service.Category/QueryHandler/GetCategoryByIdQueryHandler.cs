@@ -1,10 +1,10 @@
 ﻿using System.Threading.Tasks;
-using Data.Entity;
+using Data.Context;
 using Microsoft.EntityFrameworkCore;
-using Service.Category.Queries;
+using Service.Category.Query;
 using Service.Common;
 
-namespace Service.Category.Handlers
+namespace Service.Category.QueryHandler
 {
     public class GetCategoryByIdQueryHandler : IQueryHandler<GetCategoryByIdQuery, Data.Entity.Category>
     {

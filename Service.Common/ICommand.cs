@@ -1,8 +1,16 @@
-﻿namespace Service.Common
+﻿using System;
+using Common.Log;
+
+namespace Service.Common
 {
     public interface ICommand
     {
-        //TODO LogInfo ToLog();
+        LogInfo ToLog();
+    }
+
+    public interface ICommand<TResult> : ICommand
+    {
+        TResult Result { get; }
     }
 
     public interface ICommandWithTransactionIsolationLevelOverride : ICommand

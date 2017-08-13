@@ -1,17 +1,18 @@
-﻿using System;
+﻿using System.Threading.Tasks;
+using Data.Entity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace Data.Entity
+namespace Data.Context
 {
-    public class HouseKeeperContext : DbContext, IHouseKeeperContext
+    public class HouseKeeperContext : BaseContext<HouseKeeperContext>, IHouseKeeperContext
     {
         public HouseKeeperContext(DbContextOptions options) : base(options)
         {
         }
 
         public virtual DbSet<Category> Categories { get; set; }
-        public virtual DbSet<Transaction> Transactions { get; set; }
+        public virtual DbSet<Payment> Payments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -26,7 +27,7 @@ namespace Data.Entity
                     .HasColumnType("varchar(250)");
             });
 
-            modelBuilder.Entity<Transaction>(entity =>
+            modelBuilder.Entity<Payment>(entity =>
             {
                 entity.Property(e => e.CategoryId).HasDefaultValueSql("0");
 
@@ -39,11 +40,16 @@ namespace Data.Entity
                 entity.Property(e => e.Recorded).HasColumnType("datetime");
 
                 entity.HasOne(d => d.Category)
-                    .WithMany(p => p.Transactions)
+                    .WithMany(p => p.Payments)
                     .HasForeignKey(d => d.CategoryId)
                     .OnDelete(DeleteBehavior.Restrict)
-                    .HasConstraintName("FK_Transactions_Categories");
+                    .HasConstraintName("FK_Payments_Categories");
             });
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await base.SaveChangesAsync();
         }
     }
 }

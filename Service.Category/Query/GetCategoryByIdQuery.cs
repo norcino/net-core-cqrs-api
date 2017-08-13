@@ -1,7 +1,7 @@
 ﻿using Common.Log;
 using Service.Common;
 
-namespace Service.Category.Queries
+namespace Service.Category.Query
 {
     public class GetCategoryByIdQuery : IQuery<Data.Entity.Category>
     {

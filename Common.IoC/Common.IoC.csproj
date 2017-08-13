@@ -5,8 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Data.Context\Data.Context.csproj" />
-    <ProjectReference Include="..\Data.Entity\Data.Entity.csproj" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Service.Common\Service.Common.csproj" />
   </ItemGroup>
 

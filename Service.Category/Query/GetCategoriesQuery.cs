@@ -2,7 +2,7 @@
 using Common.Log;
 using Service.Common;
 
-namespace Service.Category.Queries
+namespace Service.Category.Query
 {
     public class GetCategoriesQuery : IQuery<List<Data.Entity.Category>>
     {

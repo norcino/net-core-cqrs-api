@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Service.Category.Queries;
+using Service.Category.Query;
 using Service.Common;
 
 namespace Application.Api.Controllers

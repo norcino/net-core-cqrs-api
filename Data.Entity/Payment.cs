@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Data.Entity
 {
-    public partial class Transaction
+    public partial class Payment
     {
         public int Id { get; set; }
         public DateTime Recorded { get; set; }
