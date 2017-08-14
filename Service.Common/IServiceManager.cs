@@ -7,5 +7,7 @@ namespace Service.Common
         Task<TResult> ProcessQueryAsync<TResult>(IQuery<TResult> query);
      
         Task<CommandResponse> ProcessCommandAsync(ICommand command);
+
+        Task<CommandResponse<TResult>> ProcessCommandAsync<TResult>(ICommand command);
     }
 }

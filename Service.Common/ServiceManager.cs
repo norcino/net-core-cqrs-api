@@ -25,18 +25,18 @@ namespace Service.Common
             return handler.HandleAsync((dynamic)query);
         }
 
-        public CommandResponse ProcessCommand(ICommand command)
-        {
-            var handlerType = typeof(ICommandHandler<>).MakeGenericType(command.GetType());
-            dynamic handler = _services.GetService(handlerType);
-            return handler.Handle((dynamic)command); 
-        }
-
         public async Task<CommandResponse> ProcessCommandAsync(ICommand command)
         {
             var handlerType = typeof(ICommandHandler<>).MakeGenericType(command.GetType());
             dynamic handler = _services.GetService(handlerType);
             return await handler.HandleAsync((dynamic)command); 
+        }
+
+        public async Task<CommandResponse<TResult>> ProcessCommandAsync<TResult>(ICommand command)
+        {
+            var handlerType = typeof(ICommandHandler<>).MakeGenericType(command.GetType());
+            dynamic handler = _services.GetService(handlerType);
+            return await handler.HandleAsync((dynamic)command);
         }
     }
 }

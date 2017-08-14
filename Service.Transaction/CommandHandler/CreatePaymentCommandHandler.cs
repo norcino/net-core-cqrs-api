@@ -17,9 +17,9 @@ namespace Service.Payment.CommandHandler
         public async Task<ICommandResponse> HandleAsync(CreatePaymentCommand command)
         {
             await _context.Payments.AddAsync(command.Payment);
-            var result = await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
-            return new CommandResponse<int>(result)
+            return new CommandResponse<int>(command.Payment.Id)
             {
                 Successful = true
             };
