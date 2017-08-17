@@ -1,20 +1,14 @@
-using System;
 using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Threading.Tasks;
 using Common.IoC;
 using Data.Context;
-using Data.Entity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Service.Common;
-using Service.Payment.Command;
-using Microsoft.Extensions.Configuration;
 
-namespace Common.Integration.Test
+namespace Common.IntegrationTest
 {
     [TestClass]
     public abstract class BaseIdempotentIntegrationTest

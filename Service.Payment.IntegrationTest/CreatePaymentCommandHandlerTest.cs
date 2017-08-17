@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Common.Integration.Test;
+using Common.IntegrationTest;
 using Common.Test;
 using Data.Entity;
 using Microsoft.EntityFrameworkCore;

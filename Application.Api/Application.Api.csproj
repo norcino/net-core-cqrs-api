@@ -22,7 +22,6 @@
     <ProjectReference Include="..\Data.Entity\Data.Entity.csproj" />
     <ProjectReference Include="..\Service.Category\Service.Category.csproj" />
     <ProjectReference Include="..\Service.Common\Service.Common.csproj" />
-    <ProjectReference Include="..\Service.Transaction\Service.Payment.csproj" />
   </ItemGroup>
 
 </Project>
