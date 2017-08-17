@@ -22,9 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Common.Integration.Test\Common.IntegrationTest.csproj" />
+    <ProjectReference Include="..\Common.Integration.Tests\Common.IntegrationTests.csproj" />
     <ProjectReference Include="..\Common.IoC\Common.IoC.csproj" />
-    <ProjectReference Include="..\Common.Test\Common.Test.csproj" />
+    <ProjectReference Include="..\Common.Tests\Common.Tests.csproj" />
     <ProjectReference Include="..\Service.Common\Service.Common.csproj" />
     <ProjectReference Include="..\Service.Payment\Service.Payment.csproj" />
   </ItemGroup>

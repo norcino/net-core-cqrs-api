@@ -23,23 +23,23 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Validation", "Common
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Service.Category", "Service.Category\Service.Category.csproj", "{9C99CD2E-DC0F-44B9-B6CB-B80480B690F1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Log.Test", "Common.Log.Test\Common.Log.Test.csproj", "{8D59463B-1DFD-4088-A057-9963EBB379CB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Log.Tests", "Common.Log.Tests\Common.Log.Tests.csproj", "{8D59463B-1DFD-4088-A057-9963EBB379CB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Log", "Common.Log\Common.Log.csproj", "{91A234F5-93B2-4573-8A26-84C17C27CF79}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Context", "Data.Context\Data.Context.csproj", "{47AC7BDA-FBBC-43AA-8691-D49C0919FD3A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Service.Payment.IntegrationTest", "Service.Payment.IntegrationTest\Service.Payment.IntegrationTest.csproj", "{EA6CAEAB-B0EB-43E4-B146-15842C87CADC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Service.Payment.IntegrationTests", "Service.Payment.IntegrationTests\Service.Payment.IntegrationTests.csproj", "{EA6CAEAB-B0EB-43E4-B146-15842C87CADC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.IoC", "Common.IoC\Common.IoC.csproj", "{24D93FFC-8644-496A-BDC0-7C8DB7995870}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.IntegrationTest", "Common.Integration.Test\Common.IntegrationTest.csproj", "{883BC712-8CCD-4A44-A7DB-54C7BF837411}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.IntegrationTests", "Common.Integration.Tests\Common.IntegrationTests.csproj", "{883BC712-8CCD-4A44-A7DB-54C7BF837411}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Test", "Common.Test\Common.Test.csproj", "{8702BB72-5D37-42E6-B846-ED2FF1C06578}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Tests", "Common.Tests\Common.Tests.csproj", "{8702BB72-5D37-42E6-B846-ED2FF1C06578}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Service.Payment", "Service.Payment\Service.Payment.csproj", "{58FD3310-10A2-452A-BFD2-0C9A51A920D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application.Api.Test", "Application.Api.Test\Application.Api.Test.csproj", "{BA3B994C-9813-477F-A3A7-499ED4DC2D1B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application.Api.Tests", "Application.Api.Tests\Application.Api.Tests.csproj", "{BA3B994C-9813-477F-A3A7-499ED4DC2D1B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
