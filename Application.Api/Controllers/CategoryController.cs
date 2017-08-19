@@ -1,6 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Data.Entity;
 using Microsoft.AspNetCore.Mvc;
+using Service.Category.Command;
 using Service.Category.Query;
 using Service.Common;
 
@@ -23,7 +24,7 @@ namespace Application.Api.Controllers
             return new OkObjectResult(result);
         }
         
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "GetById")]
         public async Task<ActionResult> GetAsync(int id)
         {
             var result = await _serviceManager.ProcessQueryAsync(new GetCategoryByIdQuery(id));
@@ -34,6 +35,13 @@ namespace Application.Api.Controllers
             }
 
             return new OkObjectResult(result);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> PostAsync([FromBody] Category category)
+        {
+            var result = await _serviceManager.ProcessCommandAsync<int>(new CreateCategoryCommand(category));
+            return new CreatedAtRouteResult("GetById", new { Id = result.Result }, result);
         }
     }
 }

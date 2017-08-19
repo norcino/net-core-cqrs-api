@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Service.Common;
 
-namespace Common.IntegrationTest
+namespace Common.IntegrationTests
 {
     [TestClass]
     public abstract class BaseIdempotentIntegrationTest
