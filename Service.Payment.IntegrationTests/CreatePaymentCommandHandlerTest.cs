@@ -1,14 +1,14 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Common.IntegrationTest;
-using Common.Test;
+using Common.IntegrationTests;
+using Common.Tests;
 using Data.Entity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Service.Payment.Command;
 
-namespace Service.Payment.IntegrationTest
+namespace Service.Payment.IntegrationTests
 {
     [TestClass]
     public class CreatePaymentCommandHandlerTest : BaseIdempotentIntegrationTest

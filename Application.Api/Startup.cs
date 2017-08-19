@@ -53,6 +53,9 @@ namespace Application.Api
             // Register all the query handlers with the related decoracors
             IocConfig.RegisterQueryHandlers(services);
 
+            // Register all the command handlers with the related decoracors
+            IocConfig.RegisterCommandHandlers(services);
+
             // Add framework services.
             services.AddMvc();
         }

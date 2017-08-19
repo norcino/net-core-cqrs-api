@@ -3,7 +3,7 @@ using System.Collections;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Common.Test
+namespace Common.Tests
 {
     /// <summary>
     /// Add assertion extensions

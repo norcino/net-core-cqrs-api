@@ -50,7 +50,7 @@ namespace Common.IoC
             }
         }
 
-        public static void RegisterCommandHandlers(ServiceCollection services)
+        public static void RegisterCommandHandlers(IServiceCollection services)
         {
             foreach (var assembly in AssembliesWithHandlers)
             {
