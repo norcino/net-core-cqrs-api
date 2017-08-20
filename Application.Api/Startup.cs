@@ -37,7 +37,7 @@ namespace Application.Api
                 builder.AllowAnyMethod();
                 builder.AllowCredentials();
             });
-
+            
             app.UseMvc();
         }
 
@@ -57,7 +57,10 @@ namespace Application.Api
             IocConfig.RegisterCommandHandlers(services);
 
             // Add framework services.
-            services.AddMvc();
+            services.AddMvc()
+                .AddJsonOptions(
+                    options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+                );
         }
     }
 }

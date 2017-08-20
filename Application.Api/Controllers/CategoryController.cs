@@ -24,7 +24,7 @@ namespace Application.Api.Controllers
             return new OkObjectResult(result);
         }
         
-        [HttpGet("{id}", Name = "GetById")]
+        [HttpGet("{id}", Name = "GetCategoryById")]
         public async Task<ActionResult> GetAsync(int id)
         {
             var result = await _serviceManager.ProcessQueryAsync(new GetCategoryByIdQuery(id));
@@ -41,7 +41,7 @@ namespace Application.Api.Controllers
         public async Task<ActionResult> PostAsync([FromBody] Category category)
         {
             var result = await _serviceManager.ProcessCommandAsync<int>(new CreateCategoryCommand(category));
-            return new CreatedAtRouteResult("GetById", new { Id = result.Result }, result);
+            return new CreatedAtRouteResult("GetCategoryById", new { Id = result.Result }, result);
         }
     }
 }
