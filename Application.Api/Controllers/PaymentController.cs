@@ -35,5 +35,12 @@ namespace Application.Api.Controllers
             var result = await _serviceManager.ProcessCommandAsync<int>(new CreatePaymentCommand(payment));
             return new CreatedAtRouteResult("GetPaymentById", new { Id = result.Result }, result);
         }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult> PutAsync(int id, [FromBody] Payment payment)
+        {
+            var result = await _serviceManager.ProcessCommandAsync<int>(new UpdatePaymentCommand(id, payment));
+            return new OkObjectResult(result);
+        }
     }
 }

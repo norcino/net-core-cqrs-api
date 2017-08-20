@@ -8,8 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Service.Common;
-using Service.Common.QueryHandlerDecorators;
 using Microsoft.Extensions.DependencyModel;
+using Service.Common.CommandHandlerDecorators;
+using Service.Common.QueryHandlerDecorators;
 
 namespace Common.IoC
 {
@@ -17,9 +18,13 @@ namespace Common.IoC
     {
         public static void RegisterContext(IServiceCollection services, string connectionString)
         {
-            services.AddDbContext<HouseKeeperContext>(options => options.UseSqlServer(connectionString));
+            services.AddDbContext<HouseKeeperContext>(options =>
+            {
+                options.UseSqlServer(connectionString);
+                options.EnableSensitiveDataLogging();
+            });
 
-            services.AddSingleton<IHouseKeeperContext>(service => service.GetService<HouseKeeperContext>());
+            services.AddTransient<IHouseKeeperContext>(service => service.GetService<HouseKeeperContext>());
         }
 
         public static void RegisterServiceManager(IServiceCollection services)
@@ -66,9 +71,9 @@ namespace Common.IoC
                     // Register the handler by it's own type
                     services.Add(new ServiceDescriptor(handlerType, handlerType, ServiceLifetime.Transient));
 
-//                    DecorateHandlerdescriptors(services, interfaceType, typeof(TransactionalQueryHandlerDecorator<,>));
-//                    DecorateHandlerdescriptors(services, interfaceType, typeof(ExceptionQueryHandlerDecorator<,>));
-//                    DecorateHandlerdescriptors(services, interfaceType, typeof(LoggingQueryHandlerDecorator<,>));
+                    DecorateHandlerdescriptors(services, interfaceType, typeof(TransactionalCommandHandlerDecorator<>));
+                    DecorateHandlerdescriptors(services, interfaceType, typeof(ExceptionCommandHandlerDecorator<>));
+                    DecorateHandlerdescriptors(services, interfaceType, typeof(LoggingCommandHandlerDecorator<>));
                 }
             }
         }

@@ -9,7 +9,6 @@ namespace Data.Context
     {
         protected BaseContext()
         { }
-
         
         protected BaseContext(DbContextOptions options) : base(options)
         {

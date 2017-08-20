@@ -36,8 +36,9 @@ namespace Common.IntegrationTests
             var serviceProvider = coll.BuildServiceProvider();
 
             Context = serviceProvider.GetService<IHouseKeeperContext>();
-            ServiceManager = new ServiceManager(serviceProvider);
             Transaction = Context.Database.BeginTransaction(IsolationLevel.ReadCommitted);
+
+            ServiceManager = new ServiceManager(serviceProvider);
         }
 
         [TestCleanup]

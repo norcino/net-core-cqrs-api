@@ -46,7 +46,7 @@ namespace Application.Api
         {
             // Entity Framework context registration
             IocConfig.RegisterContext(services, Configuration.GetConnectionString("HouseKeeping"));
-
+            
             // Register service manager
             IocConfig.RegisterServiceManager(services);
 

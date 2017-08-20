@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.ComponentModel;
 using System.Threading.Tasks;
+using System.Transactions;
 using Microsoft.Extensions.Logging;
+using Service.Common.QueryAttributes;
 
 namespace Service.Common.QueryHandlerDecorators
 {
@@ -20,27 +20,27 @@ namespace Service.Common.QueryHandlerDecorators
         public async Task<TResult> HandleAsync(TQuery query)
         {
             TResult retVal;
-//            var attribute = (TransactionQueryAttribute)TypeDescriptor.GetAttributes(query)[typeof(TransactionQueryAttribute)];
-//
-//            if (attribute != null)
-//            {
-//                TransactionScopeOption? transactionScopeOption = TransactionManager.GetTransactionScopeFromObject<IQueryWithTransactionScopeOptionOverride<TResult>>(query) ?? attribute.TransactionScopeOption;
-//                IsolationLevel? isolationLevel = TransactionManager.GetIsolationLevelFromObject<IQueryWithTransactionIsolationLevelOverride<TResult>>(query) ?? attribute.IsolationLevel;
-//
-//                using (var transactionScope = TransactionManager.CreateTransactionScope(transactionScopeOption, isolationLevel))
-//                {
-//                    TransactionManager.LogTransactionStarting(_logger, query);
-//
-//                    retVal = _decoratedQueryHandler.Handle(query);
-//                    transactionScope.Complete();
-//
-//                    TransactionManager.LogTransactionComplete(_logger, query);
-//                }
-//            }
-//            else
-//            {
+            var attribute = (TransactionQueryAttribute)TypeDescriptor.GetAttributes(query)[typeof(TransactionQueryAttribute)];
+
+            if (attribute != null)
+            {
+                TransactionScopeOption? transactionScopeOption = TransactionManager.GetTransactionScopeFromObject<IQueryWithTransactionScopeOptionOverride<TResult>>(query) ?? attribute.TransactionScopeOption;
+                IsolationLevel? isolationLevel = TransactionManager.GetIsolationLevelFromObject<IQueryWithTransactionIsolationLevelOverride<TResult>>(query) ?? attribute.IsolationLevel;
+
+                using (var transactionScope = TransactionManager.CreateTransactionScope(transactionScopeOption, isolationLevel))
+                {
+                    TransactionManager.LogTransactionStarting(_logger, query);
+
+                    retVal = await DecoratedQueryHandler.HandleAsync(query);
+                    transactionScope.Complete();
+
+                    TransactionManager.LogTransactionComplete(_logger, query);
+                }
+            }
+            else
+            {
                 retVal = await DecoratedQueryHandler.HandleAsync(query);
-//            }
+            }
 
             return retVal;
         }
