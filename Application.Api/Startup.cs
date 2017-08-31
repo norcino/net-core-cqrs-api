@@ -50,6 +50,9 @@ namespace Application.Api
             // Register service manager
             IocConfig.RegisterServiceManager(services);
 
+            // Register the validators
+            IocConfig.RegisterValidators(services);
+
             // Register all the query handlers with the related decoracors
             IocConfig.RegisterQueryHandlers(services);
 

@@ -25,18 +25,30 @@ namespace Service.Common
             return handler.HandleAsync((dynamic)query);
         }
 
-        public async Task<CommandResponse> ProcessCommandAsync(ICommand command)
+        public async Task<ICommandResponse> ProcessCommandAsync(ICommand command)
         {
             var handlerType = typeof(ICommandHandler<>).MakeGenericType(command.GetType());
             dynamic handler = _services.GetService(handlerType);
             return await handler.HandleAsync((dynamic)command); 
         }
 
-        public async Task<CommandResponse<TResult>> ProcessCommandAsync<TResult>(ICommand command)
+        public async Task<ICommandResponse<TResult>> ProcessCommandAsync<TResult>(ICommand command)
         {
             var handlerType = typeof(ICommandHandler<>).MakeGenericType(command.GetType());
             dynamic handler = _services.GetService(handlerType);
-            return await handler.HandleAsync((dynamic)command);
+
+            var result = await handler.HandleAsync((dynamic)command);
+
+            if (result == null || result.GetType() == typeof(CommandResponse<TResult>))
+            {
+                return result;
+            }
+            
+            var specialisedRommandResponse = (ICommandResponse<TResult>) Activator.CreateInstance(typeof(CommandResponse<TResult>));
+            specialisedRommandResponse.ValidationEntries = (result as ICommandResponse).ValidationEntries;
+            specialisedRommandResponse.Successful = (result as ICommandResponse).Successful;
+
+            return specialisedRommandResponse;
         }
     }
 }

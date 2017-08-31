@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Transactions;
 using Common.Log;
 
 namespace Service.Common
@@ -15,11 +15,11 @@ namespace Service.Common
 
     public interface ICommandWithTransactionIsolationLevelOverride : ICommand
     {
-        //TODO IsolationLevel? IsolationLevel { get; set; }
+        IsolationLevel? IsolationLevel { get; set; }
     }
 
     public interface ICommandWithTransactionScopeOptionOverride : ICommand
     {
-        //TODO TransactionScopeOption? TransactionScopeOption { get; set; }
+        TransactionScopeOption? TransactionScopeOption { get; set; }
     }
 }

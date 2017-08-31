@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Data.Context\Data.Context.csproj" />
+    <ProjectReference Include="..\Service.Category\Service.Category.csproj" />
     <ProjectReference Include="..\Service.Common\Service.Common.csproj" />
   </ItemGroup>
 

@@ -3,24 +3,38 @@ using System.Linq;
 
 namespace Common.Validation
 {
-    public class ValidationResult
+    public class ValidationResult : IValidationResult
     {
         /// <summary>
         /// Whether validation succeeded
         /// </summary>
-        public virtual bool IsValid => Entries.All(e => e.Severity != Severity.Error);
-
+        public virtual bool IsValid => ValidationEntries.All(e => e.Severity != Severity.Error);
+        
         /// <summary>
         /// A collection of errors
         /// </summary>
-        public IList<ValidationEntry> Entries { get; }
+        public IList<ValidationEntry> ValidationEntries { get; }
+
+        /// <summary>
+        /// Merge two validation results appending the entries of the second validation result to the first
+        /// </summary>
+        /// <param name="validationResult">Validation result to merge with the current</param>
+        /// <returns>Validation result containing al the entries</returns>
+        public IValidationResult Merge(IValidationResult validationResult)
+        {
+            foreach (var validationEntry in validationResult.ValidationEntries)
+            {
+                ValidationEntries.Add(validationEntry);
+            }
+            return this;
+        }
 
         /// <summary>
         /// Creates a new validationResult
         /// </summary>
         public ValidationResult()
         {
-            this.Entries = new List<ValidationEntry>();
+            this.ValidationEntries = new List<ValidationEntry>();
         }
 
         /// <summary>
@@ -32,7 +46,7 @@ namespace Common.Validation
         /// </remarks>
         public ValidationResult(IEnumerable<ValidationEntry> failures)
         {
-            Entries = failures.Where(failure => failure != null).ToList();
+            ValidationEntries = failures.Where(failure => failure != null).ToList();
         }
     }
 }

@@ -9,7 +9,7 @@ using Service.Category.Query;
 namespace Service.Category.IntegrationTests
 {
     [TestClass]
-    public class GetCategoryByIdQueryHandlerTest : BaseIdempotentIntegrationTest
+    public class CategoryValidatorTest : BaseIdempotentIntegrationTest
     {
         [TestMethod]
         public async Task Handler_get_category_by_id_with_the_correct_properties()

@@ -20,7 +20,7 @@ namespace Common.IntegrationTests
         [TestInitialize]
         public void Initialize()
         {
-            var coll = new ServiceCollection();
+            var serviceCollection = new ServiceCollection();
 
             var builder = new ConfigurationBuilder();
 
@@ -28,12 +28,13 @@ namespace Common.IntegrationTests
                 .AddEnvironmentVariables();
             var configuration = builder.Build();
 
-            IocConfig.RegisterContext(coll, configuration.GetConnectionString("HouseKeeping_Test"));
-            IocConfig.RegisterServiceManager(coll);
-            IocConfig.RegisterQueryHandlers(coll);
-            IocConfig.RegisterCommandHandlers(coll);
+            IocConfig.RegisterContext(serviceCollection, configuration.GetConnectionString("HouseKeeping_Test"));
+            IocConfig.RegisterServiceManager(serviceCollection);
+            IocConfig.RegisterValidators(serviceCollection);
+            IocConfig.RegisterQueryHandlers(serviceCollection);
+            IocConfig.RegisterCommandHandlers(serviceCollection);
 
-            var serviceProvider = coll.BuildServiceProvider();
+            var serviceProvider = serviceCollection.BuildServiceProvider();
 
             Context = serviceProvider.GetService<IHouseKeeperContext>();
             Transaction = Context.Database.BeginTransaction(IsolationLevel.ReadCommitted);
