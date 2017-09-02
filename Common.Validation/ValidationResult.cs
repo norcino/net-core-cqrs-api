@@ -40,7 +40,7 @@ namespace Common.Validation
         /// <summary>
         /// Creates a new ValidationResult from a collection of failures
         /// </summary>
-        /// <param name="failures">List of <see cref="ValidationFailure"/> which is later available through <see cref="Entries"/>. This list get's copied.</param>
+        /// <param name="failures">List of <see cref="ValidationEntry"/> which is later available through <see cref="Entries"/>. This list get's copied.</param>
         /// <remarks>
         /// Every caller is responsible for not adding <c>null</c> to the list.
         /// </remarks>
