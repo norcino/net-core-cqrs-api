@@ -27,7 +27,6 @@ namespace Common.IoC
             services.AddDbContext<HouseKeeperContext>(options =>
             {
                 options.UseMySql(connectionString);
-                options.EnableSensitiveDataLogging();
             });
 
             services.AddTransient<IHouseKeeperContext>(service => service.GetService<HouseKeeperContext>());

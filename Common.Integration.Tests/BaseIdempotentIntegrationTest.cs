@@ -1,7 +1,9 @@
+using System;
 using System.Data;
 using Common.IoC;
 using Data.Context;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +18,7 @@ namespace Common.IntegrationTests
         protected IDbContextTransaction Transaction;
         protected IHouseKeeperContext Context;
         protected IServiceManager ServiceManager;
+        protected bool UseInMemoryDatabase = true;
 
         [TestInitialize]
         public void Initialize()
@@ -28,7 +31,20 @@ namespace Common.IntegrationTests
                 .AddEnvironmentVariables();
             var configuration = builder.Build();
 
-            IocConfig.RegisterContext(serviceCollection, configuration.GetConnectionString("HouseKeeping_Test"));
+            if (UseInMemoryDatabase)
+            {
+                serviceCollection.AddDbContext<HouseKeeperContext>(options =>
+                {
+                    options.UseInMemoryDatabase(Guid.NewGuid().ToString());
+                    options.ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+                });
+                serviceCollection.AddTransient<IHouseKeeperContext>(service => service.GetService<HouseKeeperContext>());
+            }
+            else
+            {
+                IocConfig.RegisterContext(serviceCollection, configuration.GetConnectionString("HouseKeeping_Test"));
+            }
+            
             IocConfig.RegisterServiceManager(serviceCollection);
             IocConfig.RegisterValidators(serviceCollection);
             IocConfig.RegisterQueryHandlers(serviceCollection);
