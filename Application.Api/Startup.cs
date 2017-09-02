@@ -37,7 +37,7 @@ namespace Application.Api
                 builder.AllowAnyMethod();
                 builder.AllowCredentials();
             });
-
+            
             app.UseMvc();
         }
 
@@ -46,9 +46,12 @@ namespace Application.Api
         {
             // Entity Framework context registration
             IocConfig.RegisterContext(services, Configuration.GetConnectionString("HouseKeeping"));
-
+            
             // Register service manager
             IocConfig.RegisterServiceManager(services);
+
+            // Register the validators
+            IocConfig.RegisterValidators(services);
 
             // Register all the query handlers with the related decoracors
             IocConfig.RegisterQueryHandlers(services);
@@ -57,7 +60,10 @@ namespace Application.Api
             IocConfig.RegisterCommandHandlers(services);
 
             // Add framework services.
-            services.AddMvc();
+            services.AddMvc()
+                .AddJsonOptions(
+                    options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+                );
         }
     }
 }

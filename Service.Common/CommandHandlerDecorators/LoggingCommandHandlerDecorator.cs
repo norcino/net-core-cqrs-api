@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
-using Common.Log;
 using Microsoft.Extensions.Logging;
 
 namespace Service.Common.CommandHandlerDecorators

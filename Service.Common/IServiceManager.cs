@@ -6,8 +6,8 @@ namespace Service.Common
     {
         Task<TResult> ProcessQueryAsync<TResult>(IQuery<TResult> query);
      
-        Task<CommandResponse> ProcessCommandAsync(ICommand command);
+        Task<ICommandResponse> ProcessCommandAsync(ICommand command);
 
-        Task<CommandResponse<TResult>> ProcessCommandAsync<TResult>(ICommand command);
+        Task<ICommandResponse<TResult>> ProcessCommandAsync<TResult>(ICommand command);
     }
 }

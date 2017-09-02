@@ -31,6 +31,8 @@ namespace Service.Common
     {
         public TResult Result { get; }
 
+        public CommandResponse() : base() { }
+
         public CommandResponse(TResult result) : base()
         {
             Result = result;

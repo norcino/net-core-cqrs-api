@@ -17,7 +17,7 @@ namespace Application.Api.Controllers
             _serviceManager = serviceManager;
         }
 
-        [HttpGet("{id}", Name = "GetById")]
+        [HttpGet("{id}", Name = "GetPaymentById")]
         public async Task<ActionResult> GetAsync(int id)
         {
             var result = await _serviceManager.ProcessQueryAsync(new GetPaymentByIdQuery(id));
@@ -33,7 +33,14 @@ namespace Application.Api.Controllers
         public async Task<ActionResult> PostAsync([FromBody] Payment payment)
         {
             var result = await _serviceManager.ProcessCommandAsync<int>(new CreatePaymentCommand(payment));
-            return new CreatedAtRouteResult("GetById", new { Id = result.Result }, result);
+            return new CreatedAtRouteResult("GetPaymentById", new { Id = result.Result }, result);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult> PutAsync(int id, [FromBody] Payment payment)
+        {
+            var result = await _serviceManager.ProcessCommandAsync<int>(new UpdatePaymentCommand(id, payment));
+            return new OkObjectResult(result);
         }
     }
 }

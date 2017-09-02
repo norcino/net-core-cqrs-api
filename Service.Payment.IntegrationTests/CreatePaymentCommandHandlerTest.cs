@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Common.IntegrationTests;
 using Common.Tests;
-using Data.Entity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Service.Payment.Command;
@@ -16,7 +15,7 @@ namespace Service.Payment.IntegrationTests
         [TestMethod]
         public async Task Handler_creates_new_payment_with_the_correct_properties()
         {
-            var category = new Category
+            var category = new Data.Entity.Category
             {
                 Active = true,
                 Name = "Test category",

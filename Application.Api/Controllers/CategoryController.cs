@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Data.Entity;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Service.Category.Command;
 using Service.Category.Query;
@@ -24,7 +25,7 @@ namespace Application.Api.Controllers
             return new OkObjectResult(result);
         }
         
-        [HttpGet("{id}", Name = "GetById")]
+        [HttpGet("{id}", Name = "GetCategoryById")]
         public async Task<ActionResult> GetAsync(int id)
         {
             var result = await _serviceManager.ProcessQueryAsync(new GetCategoryByIdQuery(id));
@@ -41,7 +42,13 @@ namespace Application.Api.Controllers
         public async Task<ActionResult> PostAsync([FromBody] Category category)
         {
             var result = await _serviceManager.ProcessCommandAsync<int>(new CreateCategoryCommand(category));
-            return new CreatedAtRouteResult("GetById", new { Id = result.Result }, result);
+
+            if (result.Successful)
+            {
+                return new CreatedAtRouteResult("GetCategoryById", new {Id = result.Result}, result);
+            }
+
+            return StatusCode(StatusCodes.Status422UnprocessableEntity, result);
         }
     }
 }
