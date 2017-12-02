@@ -183,3 +183,4 @@ DB/HouseKeeping_log.ldf
 DB/HouseKeeping_Test_log.ldf
 DB/HouseKeeping_Test.mdf
 DB/HouseKeeping.mdf
+Application.Api/Logs/

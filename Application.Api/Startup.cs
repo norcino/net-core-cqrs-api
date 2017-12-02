@@ -28,6 +28,8 @@ namespace Application.Api
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+            loggerFactory.AddFile(Configuration.GetValue<string>("LogFile"));
+
             loggerFactory.AddDebug();
 
             app.UseCors(builder =>
