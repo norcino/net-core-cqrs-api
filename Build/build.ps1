@@ -1,8 +1,14 @@
+# TODO
+# - Add flag to choose if to use local docker or remote docker
+# - Update docker compose to specify the folder mapping there
+# - Move all the folders (Config, Logs) in \\nas\hosting\HouseKeeper e \\nas\hosting\Hasci and change the create container step
+
 properties {
 	$baseDir = resolve-path .\..\
     $srcDir = Join-Path $baseDir ""
     $solution = Join-Path  $srcDir "HouseKeeper.sln"
 	$projectDir = Join-Path $srcDir "\Application.Api"
+	$configDir = Join-Path $projectDir "\Config"
 	$project = Join-Path  $projectDir "\Application.Api.csproj"
 	$buildDir = Join-Path  $baseDir "build"
 	$publishDir = Join-Path $srcDir "\obj\Docker\publish"
@@ -11,83 +17,58 @@ properties {
 	$projBaseDir = resolve-path .\..\
     $buildConfiguration = "Release"
 	$containerUrl = "tcp://nas.home:2376"
-	$containerName = "CoreApiDocker"
+	$containerName = "HouseKeeper"
 	$imageName = "housekeeper"
 	$hostname = "housekeeper"
-	$containerMacAddress = "02:42:49:58:61:80"
-	$containerIpAddress = "192.168.0.139"
-	$uiVersionParameter = $uiversion
-	$apiVersionParameter = $apiversion
-	$dataVolumePath = "/share/HouseKeeper/Data"
+	$containerMacAddress = "02:42:42:bc:df:70"
+	$containerIpAddress = "192.168.0.140"
 	$logsVolumePath = "/share/HouseKeeper/Logs"
 	$wwwrootVolumePath = "/share/HouseKeeper/wwwroot"
 	$configVolumePath = "/share/HouseKeeper/Config"
 }
 
-# invoke-psake .\build.ps1 
-# publish deploys API
-
 task default -depends help
 
-# To pass parameters use: 
-# invoke-psake publish -parameters @{"apiversion"="1.0.0"}
-
-properties {
-  $apiVersionParameter = $apiversion
-}
-
 # Builds, create the image, uploads it
-task publish -depends check-docker-running, build, generate-image, publish-image, create-container, start-container
-task publish-nas -depends check-docker-running-nas, build, generate-image-nas, publish-image-nas, create-container-nas, start-container-nas
-
-# Publish the image removing the existing and adding the new
-task publish-image -depends check-docker-running, remove-containers
-
-# Cleans the solution
-task clean-all -depends clean-debug, clean-release
+task publish -depends check-docker-running, build, generate-image, create-container, start-container
 
 task help {
 	Exec { echo "" }
 	Exec { echo "Example of execution:" }
 	Exec { echo "" }
-	Exec { echo "invoke-psake .\build.ps1" }
-	Exec { echo 'invoke-psake .\build.ps1 publish -parameters @{"apiversion"="1.0.0"}' }
+	Exec { echo "invoke-psake .\build.ps1 {task_name}" }
 	Exec { echo "" }
-	Exec { echo "" }
-	Exec { echo "publish:			Publishes the current version of the API"}	
-	Exec { echo "publish-image:		Publish the image removing the existing and adding the new"}
-	Exec { echo "clean-debug:"}
-	Exec { echo "restore:"}
-	Exec { echo "get-version:"}
-	Exec { echo "increment-api-version:"}
-	Exec { echo "generate-image:"}
-	Exec { echo "stop-containers:"}
-	Exec { echo "generate-image:"}
-	Exec { echo "remove-images: "}
-	Exec { echo "create-container:"}
-	Exec { echo "create-container:"}	
+	Exec { echo "build:							Clean the solution, restores the nuget packages and builds the solution" }
+	Exec { echo "publish:						Publishes the API"}	
+	Exec { echo "clean:							Clean the solution"}
+	Exec { echo "restore:						Restores nuget packages"}
+	Exec { echo "generate-image:				If the image exists already with the same tag it is removed, then builds and publishes the solution and then Generates the image using the published content"}
+	Exec { echo "stop-containers:				Stop all the remote containers using the image"}
+	Exec { echo "start-container:				Start the newly created container"}
+	Exec { echo "remove-container:				Remove all the remote containers with the same name"}
+	Exec { echo "create-container:				Create the container using the latest version of the image"}
+	Exec { echo "remove-containers:				Stops and Remove all the remote containers with the same name"}	
+	Exec { echo "remove-image:					Remove existing image with the same tag"}
+	Exec { echo "remove-images:					Removes all the remote images with the same name"}
+	Exec { echo "publish-solution:				Build the solution and generates the solution publishing folder"}	
+	Exec { echo "get-version:					Get the API version from project file"}	
+	Exec { echo "create-container-network:		If doesn't exist, create the network used by all containers in the NAS"}	
 }
 
 #
 # ---------------------------------------------------------------------------------------------------------
 #
 
-# Sets the new API version in the files
-task set-version -depends get-version {
-	Log("Setting API version to appsettings.json")
-	(Get-Content $projectDir\appsettings.json).replace('$imageName:version}', $script:buildversion) | Set-Content $projectDir\appsettings.json
+# Clean the solution
+task clean {
+	Log("Cleaning API build")
+    Exec { dotnet clean -c $buildConfiguration $solution }
 }
 
-# Clean the debug build result of the solution
-task clean-debug {
-	Log("Cleaning API debug build")
-    Exec { dotnet clean -c Debug $solution }
-}
-
-# Clean the release build result of the solution
-task clean-release {
-	Log("Cleaning API release build")
-    Exec { dotnet clean -c Release $solution }
+# Clean the solution, restores the nuget packages and builds the solution
+task build -depends clean, restore {
+	Log("Building API application")
+    Exec { dotnet build -c $buildConfiguration $solution }
 }
 
 # Restores nuget packages
@@ -96,42 +77,25 @@ task restore {
     Exec { dotnet restore $solution }
 }
 
-# Get the API version using the parameter if available otherwhise from the file
+# Get the API version from project file
 task get-version {
 	Log("Getting current API version")
-	if ($apiVersionParameter) {
-		$script:buildversion = $apiVersionParameter
-		Set-Content .\app.version $script:buildversion
-	} else {
-		$script:buildversion = (Get-Content .\app.version)
-	}
 	
+	[xml]$xml =  Get-Content $project
+	$script:buildversion = Select-Xml "child::Project/PropertyGroup/Version" $xml
 	Exec { "API version " + $script:buildversion }
-}
-
-# Increment the current API version
-task increment-api-version -depends get-version {
-	Log("Increment the current API version ($script:buildversion)")
-	$fileVersion = $script:buildversion.Split(".")
-	$fileVersion[2] = [int]$fileVersion[2] + 1
-	$fileVersion -join "." | Set-Content .\app.version
-	$script:buildversion = $fileVersion -join "."
-	
-	Exec { "New API version " + $script:buildversion }
 }
 
 # Generate the solution publishing folder
 task publish-solution -depends build {
 	Log("Generating publish folder")
-    Exec { dotnet publish --output $publishDir $project }
+    Exec { dotnet publish --output $publishDir $project -c $buildConfiguration }
 }
 
-# Generate the image using the published content
-task generate-image -depends publish-solution, set-version {
+# If the image exists already with the same tag it is removed, then builds and publishes the solution and then Generates the image using the published content
+task generate-image -depends remove-image, publish-solution, get-version {
 	Log("Building docker image")
-	Log("- " + $dockerfile)
-	Log("- " + $srcDir)
-    Exec { docker build -f $dockerfile -t $imageName":"$script:buildversion $srcDir }
+    Exec { docker --tls -H="$containerUrl" build -f $dockerfile -t $imageName":"$script:buildversion $srcDir }
 }
 
 # Stop all the remote containers using the image
@@ -141,14 +105,29 @@ task stop-containers {
 	Exec { docker ps -a -f name=$containerName --no-trunc -q | foreach-object { docker stop $_ } }
 }
 
-# Removes all the remote images
+# Remove existing image with the same tag
+task remove-image -depends force-docker-api-nas, remove-containers, get-version {
+	Log("Removing existing docker image $($imageName):$($script:buildversion)")
+	Exec {
+		$existingImages = docker --tls -H="$containerUrl" images $imageName":"$script:buildversion
+		
+		If ($existingImages.count -gt 1) {
+			write-host "Removing the existing image.."
+			docker --tls -H="$containerUrl" rmi -f $imageName":"$script:buildversion;
+		} else {
+			write-host "The image does not exist"
+		}
+	}
+}
+
+# Removes all the remote images with the same name
 task remove-images -depends stop-containers {
 	Log("Removing existing docker images")
 	Exec { 
 		$images = @();
 		$imagestoremove = @();
 
-		docker images -a | foreach-object { $data = $_ -split '\s+';
+		docker --tls -H="$containerUrl" images -a | foreach-object { $data = $_ -split '\s+';
 			$image = new-object psobject
 			$image | add-member -type noteproperty -Name "Repository" -value $data[0]
 			$image | add-member -type noteproperty -Name "Tag" -value $data[1]
@@ -160,21 +139,22 @@ task remove-images -depends stop-containers {
 			$_.Repository.StartsWith($imageName) -or $_.Tag.StartsWith($imageName) -or $_.Tag -eq "<none>" -or $_.Repository -eq "<none>"
 		} | select Image;
 		
-		$imagestoremove | foreach-object { docker rmi -f $_.Image };
+		$imagestoremove | foreach-object { docker --tls -H="$containerUrl" rmi -f $_.Image };
 	}
 }
 
-# Remove all the remote containers
+# Stops and Remove all the remote containers with the same name
 task remove-containers -depends stop-containers {		
 	Log("Removing docker cointainers")
 	Exec { 
-		docker ps -a -f ancestor=$containerName* --no-trunc -q | foreach-object { docker rm -f $_ }
-		docker ps -a -f name=$containerName* --no-trunc -q | foreach-object { docker rm -f $_ }
+		docker --tls -H="$containerUrl" ps -a -f ancestor=$containerName* --no-trunc -q | foreach-object { docker --tls -H="$containerUrl" rm -f $_ }
+		docker --tls -H="$containerUrl" ps -a -f name=$containerName* --no-trunc -q | foreach-object { docker --tls -H="$containerUrl" rm -f $_ }
 	}
 }
 
 # Create the network used by the container
 task create-container-network {
+	Log("Create the network used by the container")
 	Exec {
 		$existingnetworks = docker --tls -H="$containerUrl" network ls -f 'name=bridged-network'
 				
@@ -188,15 +168,17 @@ task create-container-network {
 
 # Start the newly created container
 task start-container {
+	Log("Start the newly created container")
 	Exec { 
-		docker start $containerName$script:buildversion
+		docker --tls -H="$containerUrl" start $containerName
 	}
 }
 
 # Create the container using the latest version of the image
-task create-container -depends get-version, create-container-network {
+task create-container -depends get-version, remove-containers, create-container-network {
+	Log("Creating the container")
 	Exec {
-		docker --tls -H="$containerUrl" create --hostname $hostname --name $containerName --workdir '/app' --publish-all=true --volume $script:dataVolumePath":/app/Data:rw" --volume $script:logsVolumePath":/app/Logs:rw" --volume $script:wwwrootVolumePath":/app/wwwroot:rw" --volume $script:configVolumePath":/app/Config:rw" --publish-all=true --net "bridged-network" --ip $script:containerIpAddress --publish "0.0.0.0::80" --mac-address=$script:containerMacAddress -t -i $imageName":"$script:buildversion
+		docker --tls -H="$containerUrl" create --hostname $hostname --name $containerName --mac-address=$containerMacAddress --ip $containerIpAddress --net "bridged-network" --workdir '/app' --publish-all=true --volume $logsVolumePath":/app/Logs:rw" --volume $wwwrootVolumePath":/app/wwwroot:rw" --volume $configVolumePath":/app/Config:rw" --publish "0.0.0.0::80" -t -i $imageName":"$script:buildversion
 	}
 }
 
@@ -220,33 +202,28 @@ function Log ($msg)
 	write-host ""
 }
 
-# Clean the solution and restores the nuget packages and builds the solution
-task build -depends clean-all, restore, set-version {
-	Log("Building API application")
-    Exec { dotnet build -c $buildConfiguration $solution }
-}
-
-# Check that docker is running
-task check-docker-running {
-	Try
-	{
-		Exec { docker ps }
-	}
-	Catch
-	{
-		Log("Docker is not running, please start it")
-		break
-	}    
-}
-
-task check-docker-running-nas -depends force-docker-api-nas {
+# Check that docker is running on target machine
+task check-docker-running -depends force-docker-api-nas, check-docker-running-locally {
 	Try
 	{
 		Exec { docker --tls -H="$containerUrl" ps }
 	}
 	Catch
 	{
-		Log("Docker is not running, please start it")
+		Log("Unable to access Docker on target machine, check that docker is running and that the url is correct")
+		break
+	}    
+}
+
+# Check that docker is running
+task check-docker-running-locally {
+	Try
+	{
+		Exec { docker ps }
+	}
+	Catch
+	{
+		Log("Docker is not running in the local machine")
 		break
 	}    
 }

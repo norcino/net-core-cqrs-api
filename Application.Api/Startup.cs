@@ -18,8 +18,8 @@ namespace Application.Api
 
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+                .AddJsonFile("Config/appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"Config/appsettings.{env.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
         }
@@ -46,8 +46,10 @@ namespace Application.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<IConfiguration>(Configuration);
+
             // Entity Framework context registration
-            IocConfig.RegisterContext(services, Configuration.GetConnectionString("HouseKeeping"));
+            IocConfig.RegisterContext(services, Configuration.GetConnectionString(Constants.ConfigConnectionStringName));
             
             // Register service manager
             IocConfig.RegisterServiceManager(services);
