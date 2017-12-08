@@ -4,6 +4,11 @@
 # - Move all the folders (Config, Logs) in \\nas\hosting\HouseKeeper e \\nas\hosting\Hasci and change the create container step
 
 properties {
+	$containerName = "HouseKeeper"
+	$imageName = "housekeeper"
+	$hostname = "housekeeper"
+	$containerMacAddress = "02:42:42:bc:df:70"
+	$containerIpAddress = "192.168.0.140"
 	$baseDir = resolve-path .\..\
     $srcDir = Join-Path $baseDir ""
     $solution = Join-Path  $srcDir "HouseKeeper.sln"
@@ -17,14 +22,11 @@ properties {
 	$projBaseDir = resolve-path .\..\
     $buildConfiguration = "Release"
 	$containerUrl = "tcp://nas.home:2376"
-	$containerName = "HouseKeeper"
-	$imageName = "housekeeper"
-	$hostname = "housekeeper"
-	$containerMacAddress = "02:42:42:bc:df:70"
-	$containerIpAddress = "192.168.0.140"
-	$logsVolumePath = "/share/HouseKeeper/Logs"
-	$wwwrootVolumePath = "/share/HouseKeeper/wwwroot"
-	$configVolumePath = "/share/HouseKeeper/Config"
+	$logsVolumePath = "/share/Container/Logs"
+	$wwwrootVolumePath = "/share/Container/HouseKeeper/wwwroot"
+	$configVolumePath = "/share/Container/$($containerName)/Config"
+	$absoluteConfigPath = "//nas/Container/$($containerName)/Config"
+	$local = $false
 }
 
 task default -depends help
@@ -37,7 +39,7 @@ task help {
 	Exec { echo "Example of execution:" }
 	Exec { echo "" }
 	Exec { echo "invoke-psake .\build.ps1 {task_name}" }
-	Exec { echo "" }
+	Exec { echo "Use -properties @{local=$true} to override properties of the script" }
 	Exec { echo "build:							Clean the solution, restores the nuget packages and builds the solution" }
 	Exec { echo "publish:						Publishes the API"}	
 	Exec { echo "clean:							Clean the solution"}
@@ -55,7 +57,7 @@ task help {
 	Exec { echo "create-container-network:		If doesn't exist, create the network used by all containers in the NAS"}	
 }
 
-#
+# 
 # ---------------------------------------------------------------------------------------------------------
 #
 
@@ -95,28 +97,52 @@ task publish-solution -depends build {
 # If the image exists already with the same tag it is removed, then builds and publishes the solution and then Generates the image using the published content
 task generate-image -depends remove-image, publish-solution, get-version {
 	Log("Building docker image")
-    Exec { docker --tls -H="$containerUrl" build -f $dockerfile -t $imageName":"$script:buildversion $srcDir }
+    Exec { 
+		if($local) {
+			docker build -f $dockerfile -t $imageName":"$script:buildversion $srcDir 
+		} else {
+			docker --tls -H="$containerUrl" build -f $dockerfile -t $imageName":"$script:buildversion $srcDir 
+		}		
+	}
 }
 
 # Stop all the remote containers using the image
 task stop-containers {		
-	Log("Stopping existing docker containers")
-	Exec { docker ps -a -f ancestor=$containerName --no-trunc -q | foreach-object { docker stop $_ } }
-	Exec { docker ps -a -f name=$containerName --no-trunc -q | foreach-object { docker stop $_ } }
+	Log("Stopping existing docker containers")	
+	Exec {
+		if($local) {
+			docker ps -a -f ancestor=$containerName --no-trunc -q | foreach-object { docker stop $_ }
+			docker ps -a -f name=$containerName --no-trunc -q | foreach-object { docker stop $_ }
+		} else {
+			docker --tls -H="$containerUrl" ps -a -f ancestor=$containerName --no-trunc -q | foreach-object { docker --tls -H="$containerUrl" stop $_ }
+			docker --tls -H="$containerUrl" ps -a -f name=$containerName --no-trunc -q | foreach-object { docker --tls -H="$containerUrl" stop $_ }
+		}
+	}
 }
 
 # Remove existing image with the same tag
 task remove-image -depends force-docker-api-nas, remove-containers, get-version {
 	Log("Removing existing docker image $($imageName):$($script:buildversion)")
 	Exec {
-		$existingImages = docker --tls -H="$containerUrl" images $imageName":"$script:buildversion
-		
-		If ($existingImages.count -gt 1) {
-			write-host "Removing the existing image.."
-			docker --tls -H="$containerUrl" rmi -f $imageName":"$script:buildversion;
+		if($local) {
+			$existingImages = docker images $imageName":"$script:buildversion
+			
+			If ($existingImages.count -gt 1) {
+				write-host "Removing the existing image.."
+				docker rmi -f $imageName":"$script:buildversion;
+			} else {
+				write-host "The image does not exist"
+			}
 		} else {
-			write-host "The image does not exist"
-		}
+			$existingImages = docker --tls -H="$containerUrl" images $imageName":"$script:buildversion
+			
+			If ($existingImages.count -gt 1) {
+				write-host "Removing the existing image.."
+				docker --tls -H="$containerUrl" rmi -f $imageName":"$script:buildversion;
+			} else {
+				write-host "The image does not exist"
+			}
+		}		
 	}
 }
 
@@ -127,33 +153,54 @@ task remove-images -depends stop-containers {
 		$images = @();
 		$imagestoremove = @();
 
-		docker --tls -H="$containerUrl" images -a | foreach-object { $data = $_ -split '\s+';
-			$image = new-object psobject
-			$image | add-member -type noteproperty -Name "Repository" -value $data[0]
-			$image | add-member -type noteproperty -Name "Tag" -value $data[1]
-			$image | add-member -type noteproperty -Name "Image" -value $data[2]
-			$images += $image 
-		};
+		if($local) {
+			docker images -a | foreach-object { $data = $_ -split '\s+';
+				$image = new-object psobject
+				$image | add-member -type noteproperty -Name "Repository" -value $data[0]
+				$image | add-member -type noteproperty -Name "Tag" -value $data[1]
+				$image | add-member -type noteproperty -Name "Image" -value $data[2]
+				$images += $image 
+			};
 
-		$imagestoremove = $images | Where-Object { 
-			$_.Repository.StartsWith($imageName) -or $_.Tag.StartsWith($imageName) -or $_.Tag -eq "<none>" -or $_.Repository -eq "<none>"
-		} | select Image;
-		
-		$imagestoremove | foreach-object { docker --tls -H="$containerUrl" rmi -f $_.Image };
+			$imagestoremove = $images | Where-Object { 
+				$_.Repository.StartsWith($imageName) -or $_.Tag.StartsWith($imageName) -or $_.Tag -eq "<none>" -or $_.Repository -eq "<none>"
+			} | select Image;
+			
+			$imagestoremove | foreach-object { docker rmi -f $_.Image };
+		} else {
+			docker --tls -H="$containerUrl" images -a | foreach-object { $data = $_ -split '\s+';
+				$image = new-object psobject
+				$image | add-member -type noteproperty -Name "Repository" -value $data[0]
+				$image | add-member -type noteproperty -Name "Tag" -value $data[1]
+				$image | add-member -type noteproperty -Name "Image" -value $data[2]
+				$images += $image 
+			};
+
+			$imagestoremove = $images | Where-Object { 
+				$_.Repository.StartsWith($imageName) -or $_.Tag.StartsWith($imageName) -or $_.Tag -eq "<none>" -or $_.Repository -eq "<none>"
+			} | select Image;
+			
+			$imagestoremove | foreach-object { docker --tls -H="$containerUrl" rmi -f $_.Image };
+		}
 	}
 }
 
 # Stops and Remove all the remote containers with the same name
 task remove-containers -depends stop-containers {		
 	Log("Removing docker cointainers")
-	Exec { 
-		docker --tls -H="$containerUrl" ps -a -f ancestor=$containerName* --no-trunc -q | foreach-object { docker --tls -H="$containerUrl" rm -f $_ }
-		docker --tls -H="$containerUrl" ps -a -f name=$containerName* --no-trunc -q | foreach-object { docker --tls -H="$containerUrl" rm -f $_ }
+	Exec {
+		if($local) {
+			docker ps -a -f ancestor=$containerName* --no-trunc -q | foreach-object { docker rm -f $_ }
+			docker ps -a -f name=$containerName* --no-trunc -q | foreach-object { docker rm -f $_ }
+		} else {
+			docker --tls -H="$containerUrl" ps -a -f ancestor=$containerName* --no-trunc -q | foreach-object { docker --tls -H="$containerUrl" rm -f $_ }
+			docker --tls -H="$containerUrl" ps -a -f name=$containerName* --no-trunc -q | foreach-object { docker --tls -H="$containerUrl" rm -f $_ }
+		}
 	}
 }
 
 # Create the network used by the container
-task create-container-network {
+task create-container-network -precondition { return -Not $local } {
 	Log("Create the network used by the container")
 	Exec {
 		$existingnetworks = docker --tls -H="$containerUrl" network ls -f 'name=bridged-network'
@@ -170,20 +217,79 @@ task create-container-network {
 task start-container {
 	Log("Start the newly created container")
 	Exec { 
-		docker --tls -H="$containerUrl" start $containerName
+		if($local) {
+			docker start $containerName
+		} else {
+			docker --tls -H="$containerUrl" start $containerName
+		}
+	}
+}
+
+# Delete all configuration files already in the Config folder left by previous containers
+task delete-existing-config -precondition { return -Not $local } {
+	Log("Removing existing config files")
+	Exec {
+		write-host $configVolumePath
+		write-host $absoluteConfigPath
+		ri $absoluteConfigPath"/"* -recurse
+	}
+}
+
+# Create a valume that is used to store the current container config data
+task create-container-volume -precondition { return -Not $local } {
+	Exec {
+		$volumeExists = $false
+		docker --tls -H="$containerUrl" volume ls | foreach-object { $volumeExists = if(-Not $volumeExists) { $_.EndsWith("$($imageName)config_vol") } }
+				
+		If ($volumeExists) {
+			write-host "Volume container already exists"			
+		} Else {
+			docker --tls -H="$containerUrl" volume create --driver local `
+				--opt type=none `
+				--opt device=$configVolumePath `
+				--opt o=bind `
+				--name "$($imageName)config_vol"			
+		}
 	}
 }
 
 # Create the container using the latest version of the image
-task create-container -depends get-version, remove-containers, create-container-network {
+task create-container -depends delete-existing-config, get-version, remove-containers, create-container-volume, create-container-network {
 	Log("Creating the container")
 	Exec {
-		docker --tls -H="$containerUrl" create --hostname $hostname --name $containerName --mac-address=$containerMacAddress --ip $containerIpAddress --net "bridged-network" --workdir '/app' --publish-all=true --volume $logsVolumePath":/app/Logs:rw" --volume $wwwrootVolumePath":/app/wwwroot:rw" --volume $configVolumePath":/app/Config:rw" --publish "0.0.0.0::80" -t -i $imageName":"$script:buildversion
+		if($local) {
+			docker `
+				create `
+				--hostname $hostname `
+				--name $containerName `
+				--net bridge `
+				--workdir '/app' `
+				--publish-all=true `
+				--publish "0.0.0.0::80" `
+				-t `
+				-i $imageName":"$script:buildversion
+		} else {
+			docker --tls -H="$containerUrl" `
+				create `
+				--hostname $hostname `
+				--name $containerName `
+				--mac-address=$containerMacAddress `
+				--ip $containerIpAddress `
+				--net "bridged-network" `
+				--workdir '/app' `
+				--publish-all=true `
+				--volume "$($logsVolumePath):/app/Logs:rw" `
+				--volume "$($wwwrootVolumePath):/app/wwwroot:rw" `
+				--volume "$($imageName)config_vol:/app/Config" `
+				--publish "0.0.0.0::80" `
+				-t `
+				-i $imageName":"$script:buildversion			
+		}
 	}
 }
 
 # Overrides the local docker API version to be compatible with the remote server's version
-task force-docker-api-nas {
+task force-docker-api-nas -precondition { return -Not $local } {
 	Log("Forcing docker client API to version 1.23")
 	Exec { $env:DOCKER_API_VERSION = 1.23 }
 }
@@ -203,20 +309,8 @@ function Log ($msg)
 }
 
 # Check that docker is running on target machine
-task check-docker-running -depends force-docker-api-nas, check-docker-running-locally {
-	Try
-	{
-		Exec { docker --tls -H="$containerUrl" ps }
-	}
-	Catch
-	{
-		Log("Unable to access Docker on target machine, check that docker is running and that the url is correct")
-		break
-	}    
-}
+task check-docker-running -depends force-docker-api-nas {
 
-# Check that docker is running
-task check-docker-running-locally {
 	Try
 	{
 		Exec { docker ps }
@@ -224,6 +318,19 @@ task check-docker-running-locally {
 	Catch
 	{
 		Log("Docker is not running in the local machine")
+		break
+	}    
+	
+	Try
+	{
+		Log($local)
+		if(-Not $local) { 
+			Exec { docker --tls -H="$containerUrl" ps }
+		}
+	}
+	Catch
+	{
+		Log("Unable to access Docker on target machine, check that docker is running and that the url is correct")
 		break
 	}    
 }
