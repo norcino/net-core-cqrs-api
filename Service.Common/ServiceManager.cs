@@ -3,6 +3,9 @@ using System.Threading.Tasks;
 
 namespace Service.Common
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class ServiceManager : IServiceManager
     {
         private readonly IServiceProvider _services;
@@ -15,9 +18,9 @@ namespace Service.Common
         /// <summary>
         /// Dynamically constructs the correct IQueryHandler for the given query and executes it's Handle method
         /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="query"></param>
-        /// <returns></returns>
+        /// <typeparam name="TResult">Result returned by the query</typeparam>
+        /// <param name="query">Query to be executed</param>
+        /// <returns>Object or list of objects returned by the query</returns>
         public Task<TResult> ProcessQueryAsync<TResult>(IQuery<TResult> query)
         {
             var handlerType = typeof(IQueryHandler<,>).MakeGenericType(query.GetType(), typeof(TResult));
@@ -25,6 +28,11 @@ namespace Service.Common
             return handler.HandleAsync((dynamic)query);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
         public async Task<ICommandResponse> ProcessCommandAsync(ICommand command)
         {
             var handlerType = typeof(ICommandHandler<>).MakeGenericType(command.GetType());
@@ -32,6 +40,12 @@ namespace Service.Common
             return await handler.HandleAsync((dynamic)command); 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="command"></param>
+        /// <returns></returns>
         public async Task<ICommandResponse<TResult>> ProcessCommandAsync<TResult>(ICommand command)
         {
             var handlerType = typeof(ICommandHandler<>).MakeGenericType(command.GetType());

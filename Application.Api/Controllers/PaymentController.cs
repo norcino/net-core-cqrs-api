@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Data.Entity;
 using Microsoft.AspNetCore.Mvc;
 using Service.Common;
@@ -18,7 +19,7 @@ namespace Application.Api.Controllers
         }
 
         [HttpGet("{id}", Name = "GetPaymentById")]
-        public async Task<ActionResult> GetAsync(int id)
+        public async Task<ActionResult> GetByIdAsync(int id)
         {
             var result = await _serviceManager.ProcessQueryAsync(new GetPaymentByIdQuery(id));
 
@@ -30,6 +31,20 @@ namespace Application.Api.Controllers
             return new OkObjectResult(result);
         }
 
+        [HttpGet(Name = "GetPayments")]
+        public async Task<ActionResult> GetAsync()//ODataQueryOptions<Payment> queryOption)
+        {
+              //var result = await _serviceManager.ProcessQueryAsync(new GetPayments());
+//
+//            if (result == null)
+//            {
+                return NotFound();
+//            }
+
+           // return new OkObjectResult(result);
+        }
+
+        [HttpPost]
         public async Task<ActionResult> PostAsync([FromBody] Payment payment)
         {
             var result = await _serviceManager.ProcessCommandAsync<int>(new CreatePaymentCommand(payment));

@@ -1,9 +1,16 @@
-﻿using Common.IoC;
+﻿using System;
+using Common.IoC;
+using Data.Entity;
+using Microsoft.AspNet.OData.Builder;
+using Microsoft.AspNet.OData.Extensions;
+using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.OData;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.OData.Edm;
 
 namespace Application.Api
 {
@@ -29,8 +36,13 @@ namespace Application.Api
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddFile(Configuration.GetValue<string>("LogFile"));
-
-            loggerFactory.AddDebug();
+            
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+                app.UseBrowserLink();
+                loggerFactory.AddDebug();
+            }
 
             app.UseCors(builder =>
             {
@@ -40,7 +52,16 @@ namespace Application.Api
                 builder.AllowCredentials();
             });
             
-            app.UseMvc();
+            app.UseMvc(routeBuilder =>
+            {
+                routeBuilder
+                    .Expand()
+                    .Filter()
+                    .OrderBy(QueryOptionSetting.Allowed)
+                    .MaxTop(2000)
+                    .Count();
+                routeBuilder.EnableDependencyInjection();
+            });
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -64,6 +85,7 @@ namespace Application.Api
             IocConfig.RegisterCommandHandlers(services);
 
             // Add framework services.
+            services.AddOData();
             services.AddMvc()
                 .AddJsonOptions(
                     options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore

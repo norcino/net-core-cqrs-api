@@ -25,7 +25,6 @@ namespace Application.Api.Controllers
         [HttpGet]
         public ActionResult Get()
         {
-            // "server=192.168.0.111;port=3306;database=HouseKeeping_Dev;user=admin;password=HouseKeeperPassword1!"
             var db = _configuration.GetConnectionString(Constants.ConfigConnectionStringName);
 
             if (db != null)

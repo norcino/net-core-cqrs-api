@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="1.1.0" />
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.0.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Common.Log\Common.Log.csproj" />
     <ProjectReference Include="..\Common.Validation\Common.Validation.csproj" />
   </ItemGroup>

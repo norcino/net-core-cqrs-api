@@ -1,5 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Data.Entity;
+using Microsoft.AspNet.OData;
+using Microsoft.AspNet.OData.Extensions;
+using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Service.Category.Command;
@@ -9,7 +14,7 @@ using Service.Common;
 namespace Application.Api.Controllers
 {
     [Route("api/[controller]")]
-    public class CategoryController : Controller
+    public class CategoryController : BaseController
     {
         private readonly IServiceManager _serviceManager;
 
@@ -18,15 +23,17 @@ namespace Application.Api.Controllers
             _serviceManager = serviceManager;
         }
         
-        [HttpGet]
-        public async Task<ActionResult> GetAsync()
+        public IQueryable<Category> Get(ODataQueryOptions<Category> queryOptions)
         {
-            var result = await _serviceManager.ProcessQueryAsync(new GetCategoriesQuery());
-            return new OkObjectResult(result);
+            if (queryOptions == null)
+                return _serviceManager.ProcessQueryAsync(new GetCategoriesQuery()).Result.AsQueryable();
+            
+            var result = _serviceManager.ProcessQueryAsync(ApplyODataQueryConditions(queryOptions, new GetCategoriesQuery())).Result;
+            return result.AsQueryable();
         }
         
         [HttpGet("{id}", Name = "GetCategoryById")]
-        public async Task<ActionResult> GetAsync(int id)
+        public async Task<ActionResult> GetByIdAsync(int id)
         {
             var result = await _serviceManager.ProcessQueryAsync(new GetCategoryByIdQuery(id));
 

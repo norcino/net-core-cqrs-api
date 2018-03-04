@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Service.Common;
 using Microsoft.Extensions.DependencyModel;
+using Microsoft.Extensions.Logging.Console;
 using Service.Category.Command;
 using Service.Category.Validator;
 using Service.Common.CommandAttributes;
@@ -22,11 +23,16 @@ namespace Common.IoC
 {
     public class IocConfig
     {
+        public static readonly LoggerFactory MyLoggerFactory
+            = new LoggerFactory(new[] { new ConsoleLoggerProvider((_, __) => true, true) });
+
         public static void RegisterContext(IServiceCollection services, string connectionString)
         {
             services.AddDbContext<HouseKeeperContext>(options =>
             {
-                options.UseMySql(connectionString);
+                options.UseSqlServer(connectionString);
+                options.UseLoggerFactory(MyLoggerFactory);
+                //options.UseMySql(connectionString);
             });
 
             services.AddTransient<IHouseKeeperContext>(service => service.GetService<HouseKeeperContext>());

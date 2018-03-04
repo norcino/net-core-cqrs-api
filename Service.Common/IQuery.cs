@@ -2,7 +2,11 @@
 
 namespace Service.Common
 {
-    public interface IQuery<TResult>
+    public interface IQuery
+    {
+    }
+
+    public interface IQuery<TResult> : IQuery
     {
         LogInfo ToLog();
     }
