@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 using Common.Log;
 using Service.Common;
 using Service.Common.QueryTreats;
 
 namespace Service.Category.Query
 {
-    public class GetCategoriesQuery : IQuery<List<Data.Entity.Category>>, ICanTop, ICanSkip, ICanExpand, ICanOrderBy
+    public class GetCategoriesQuery : IQuery<List<Data.Entity.Category>>, ICanTop, ICanSkip, ICanExpand, ICanOrderBy, ICanFilter<Data.Entity.Category>
     {
         public LogInfo ToLog()
         {
@@ -17,5 +19,6 @@ namespace Service.Category.Query
         public string[] Expand { get; set; }
         public bool Count { get; set; }
         public IList<OrderDescriptor> OrderBy { get; set; }
+        public Expression<Func<Data.Entity.Category, bool>> Filter { get; set; }
     }
 }

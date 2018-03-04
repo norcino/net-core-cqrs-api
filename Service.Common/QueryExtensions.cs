@@ -35,6 +35,11 @@ namespace Service.Common
                 queryable = e.Expand.Aggregate(queryable, (current, expand) => current.Include(expand));
             }
 
+            if (query is ICanFilter<T> f && f.Filter != null)
+            {
+                queryable = queryable.Where(f.Filter);
+            }
+
             return queryable;
         }
     }
