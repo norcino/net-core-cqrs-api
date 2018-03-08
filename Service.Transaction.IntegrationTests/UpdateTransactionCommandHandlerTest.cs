@@ -4,15 +4,15 @@ using Common.IntegrationTests;
 using Common.Tests;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Service.Payment.Command;
+using Service.Transaction.Command;
 
-namespace Service.Payment.IntegrationTests
+namespace Service.Transaction.IntegrationTests
 {
     [TestClass]
-    public class UpdatePaymentCommandHandlerTest : BaseIdempotentIntegrationTest
+    public class UpdateTransactionCommandHandlerTest : BaseIdempotentIntegrationTest
     {
         [TestMethod]
-        public async Task Handler_update_payment_with_the_correct_properties()
+        public async Task Handler_update_transaction_with_the_correct_properties()
         {
             var category = new Data.Entity.Category
             {
@@ -32,35 +32,35 @@ namespace Service.Payment.IntegrationTests
             await Context.Categories.AddAsync(categoryTwo);
             await Context.SaveChangesAsync();
 
-            var payment = new Data.Entity.Payment
+            var transaction = new Data.Entity.Transaction
             {
                 CategoryId = category.Id,
                 Debit = 100,
-                Description = "Test payment",
+                Description = "Test transaction",
                 Recorded = DateTime.Now
             };
 
-            await Context.Payments.AddAsync(payment);
+            await Context.Transactions.AddAsync(transaction);
             await Context.SaveChangesAsync();
 
-            var updatePayment = new Data.Entity.Payment
+            var updateTransaction = new Data.Entity.Transaction
             {
-                Id = payment.Id,
+                Id = transaction.Id,
                 CategoryId = categoryTwo.Id,
                 Debit = 0,
                 Credit = 100,
-                Description = payment.Description + "2",
+                Description = transaction.Description + "2",
                 Recorded = DateTime.Now
             };
 
-            var command = new UpdatePaymentCommand(payment.Id, updatePayment);
-            var response = await ServiceManager.ProcessCommandAsync<Data.Entity.Payment>(command);
+            var command = new UpdateTransactionCommand(transaction.Id, updateTransaction);
+            var response = await ServiceManager.ProcessCommandAsync<Data.Entity.Transaction>(command);
 
             Assert.IsTrue(response.Successful, "The command response is successful");
 
-            var savedUpdatedPayment = await Context.Payments.AsNoTracking().SingleAsync(p => p.Id == response.Result.Id);
+            var savedUpdatedTransaction = await Context.Transactions.AsNoTracking().SingleAsync(p => p.Id == response.Result.Id);
 
-            savedUpdatedPayment.ShouldHaveSameProperties(updatePayment);
+            savedUpdatedTransaction.ShouldHaveSameProperties(updateTransaction);
         }
     }
 }

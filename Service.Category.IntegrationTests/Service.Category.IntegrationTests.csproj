@@ -28,7 +28,6 @@
     <ProjectReference Include="..\Common.Tests\Common.Tests.csproj" />
     <ProjectReference Include="..\Service.Category\Service.Category.csproj" />
     <ProjectReference Include="..\Service.Common\Service.Common.csproj" />
-    <ProjectReference Include="..\Service.Payment\Service.Payment.csproj" />
   </ItemGroup>
 
 </Project>

@@ -43,7 +43,7 @@
     <ProjectReference Include="..\Data.Entity\Data.Entity.csproj" />
     <ProjectReference Include="..\Service.Category\Service.Category.csproj" />
     <ProjectReference Include="..\Service.Common\Service.Common.csproj" />
-    <ProjectReference Include="..\Service.Payment\Service.Payment.csproj" />
+    <ProjectReference Include="..\Service.Transaction\Service.Transaction.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="Config\appsettings.Development.json">

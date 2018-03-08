@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Data.Entity;
 using Microsoft.AspNet.OData.Query;
@@ -26,13 +25,6 @@ namespace Application.Api.Controllers
             var query = ApplyODataQueryConditions<Category, GetCategoriesQuery>(queryOptions, new GetCategoriesQuery());
             return _serviceManager.ProcessQueryAsync(query);
         }
-
-//        public IQueryable<Category> Get(ODataQueryOptions<Category> queryOptions)
-//        {
-//            var query = ApplyODataQueryConditions<Category, GetCategoriesQuery>(queryOptions, new GetCategoriesQuery());
-//            var result = _serviceManager.ProcessQueryAsync(query).Result;
-//            return result.AsQueryable();
-//        }
         
         [HttpGet("{id}", Name = "GetCategoryById")]
         public async Task<ActionResult> GetByIdAsync(int id)

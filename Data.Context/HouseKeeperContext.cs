@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Data.Entity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Data.Context
 {
@@ -12,7 +11,7 @@ namespace Data.Context
         }
 
         public virtual DbSet<Category> Categories { get; set; }
-        public virtual DbSet<Payment> Payments { get; set; }
+        public virtual DbSet<Transaction> Transactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -27,7 +26,7 @@ namespace Data.Context
                     .HasColumnType("varchar(250)");
             });
 
-            modelBuilder.Entity<Payment>(entity =>
+            modelBuilder.Entity<Transaction>(entity =>
             {
                 entity.Property(e => e.CategoryId).HasDefaultValueSql("0");
 
@@ -40,10 +39,10 @@ namespace Data.Context
                 entity.Property(e => e.Recorded).HasColumnType("datetime");
 
                 entity.HasOne(d => d.Category)
-                    .WithMany(p => p.Payments)
+                    .WithMany(p => p.Transactions)
                     .HasForeignKey(d => d.CategoryId)
                     .OnDelete(DeleteBehavior.Restrict)
-                    .HasConstraintName("FK_Payments_Categories");
+                    .HasConstraintName("FK_Transaction_Categories");
             });
         }
 

@@ -2,7 +2,7 @@
 
 namespace Data.Entity
 {
-    public class Payment
+    public class Transaction
     {
         public int Id { get; set; }
         public DateTime Recorded { get; set; }

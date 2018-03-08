@@ -5,15 +5,15 @@ using Common.IntegrationTests;
 using Common.Tests;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Service.Payment.Command;
+using Service.Transaction.Command;
 
-namespace Service.Payment.IntegrationTests
+namespace Service.Transaction.IntegrationTests
 {
     [TestClass]
-    public class CreatePaymentCommandHandlerTest : BaseIdempotentIntegrationTest
+    public class CreateTransactionCommandHandlerTest : BaseIdempotentIntegrationTest
     {
         [TestMethod]
-        public async Task Handler_creates_new_payment_with_the_correct_properties()
+        public async Task Handler_creates_new_transaction_with_the_correct_properties()
         {
             var category = new Data.Entity.Category
             {
@@ -25,22 +25,22 @@ namespace Service.Payment.IntegrationTests
             await Context.Categories.AddAsync(category);
             await Context.SaveChangesAsync();
 
-            var payment = new Data.Entity.Payment
+            var transaction = new Data.Entity.Transaction
             {
                 CategoryId = category.Id,
                 Debit = 100,
-                Description = "Test payment",
+                Description = "Test transaction",
                 Recorded = DateTime.Now
             };
             
-            var command = new CreatePaymentCommand(payment);
+            var command = new CreateTransactionCommand(transaction);
             var response = await ServiceManager.ProcessCommandAsync<int>(command);
 
             Assert.IsTrue(response.Successful, "The command response is successful");
 
-            var createdPayment = await Context.Payments.SingleAsync(p => p.Id == response.Result);
+            var createdTransaction = await Context.Transactions.SingleAsync(p => p.Id == response.Result);
 
-            createdPayment.ShouldHaveSameProperties(payment, "Id");
+            createdTransaction.ShouldHaveSameProperties(transaction, "Id");
 
             Assert.IsTrue(Context.Categories.Any());
         }

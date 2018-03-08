@@ -4,15 +4,15 @@ using System.Threading.Tasks;
 using Common.IntegrationTests;
 using Common.Tests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Service.Payment.Query;
+using Service.Transaction.Query;
 
-namespace Service.Payment.IntegrationTests
+namespace Service.Transaction.IntegrationTests
 {
     [TestClass]
-    public class GetPaymentByIdQueryHandlerTest : BaseIdempotentIntegrationTest
+    public class GetTransactionByIdQueryHandlerTest : BaseIdempotentIntegrationTest
     {
         [TestMethod]
-        public async Task Handler_get_payment_by_id_with_the_correct_properties()
+        public async Task Handler_get_transaction_by_id_with_the_correct_properties()
         {
             var category = new Data.Entity.Category
             {
@@ -24,22 +24,22 @@ namespace Service.Payment.IntegrationTests
             await Context.Categories.AddAsync(category);
             await Context.SaveChangesAsync();
 
-            var payment = new Data.Entity.Payment
+            var transaction = new Data.Entity.Transaction
             {
                 Description = DateTime.Now.ToString(CultureInfo.InvariantCulture),
                 Recorded = DateTime.Now,
                 CategoryId = category.Id
             };
 
-            await Context.Payments.AddAsync(payment);
+            await Context.Transactions.AddAsync(transaction);
             await Context.SaveChangesAsync();
 
-            var query = new GetPaymentByIdQuery(payment.Id);
+            var query = new GetTransactionByIdQuery(transaction.Id);
             var response = await ServiceManager.ProcessQueryAsync(query);
 
             Assert.IsNotNull(response);
 
-            response.ShouldHaveSameProperties(payment);
+            response.ShouldHaveSameProperties(transaction);
         }
     }
 }

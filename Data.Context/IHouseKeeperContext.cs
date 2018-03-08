@@ -6,6 +6,6 @@ namespace Data.Context
     public interface IHouseKeeperContext : IDbContext
     {
         DbSet<Category> Categories { get; set; }
-        DbSet<Payment> Payments { get; set; }
+        DbSet<Transaction> Transactions { get; set; }
     }
 }

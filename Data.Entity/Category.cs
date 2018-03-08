@@ -6,7 +6,7 @@ namespace Data.Entity
     {
         public Category()
         {
-            Payments = new HashSet<Payment>();
+            Transactions = new HashSet<Transaction>();
         }
 
         public int Id { get; set; }
@@ -14,6 +14,6 @@ namespace Data.Entity
         public string Description { get; set; }
         public bool Active { get; set; }
 
-        public virtual ICollection<Payment> Payments { get; set; }
+        public virtual ICollection<Transaction> Transactions { get; set; }
     }
 }
