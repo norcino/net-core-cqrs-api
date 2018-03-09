@@ -27,7 +27,7 @@ namespace Application.Api.Controllers
         }
         
         [HttpGet("{id}", Name = "GetCategoryById")]
-        public async Task<ActionResult> GetByIdAsync(int id)
+        public async Task<ActionResult> Get(int id)
         {
             var result = await _serviceManager.ProcessQueryAsync(new GetCategoryByIdQuery(id));
 

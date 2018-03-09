@@ -20,16 +20,6 @@ namespace Service.Common
                 queryable = queryable.OrderBy(dynamicOrderString);
             }
 
-            if (query is ICanSkip s)
-            {
-                queryable = queryable.Skip(s.Skip);
-            }
-
-            if (query is ICanTop t && t.Top.HasValue)
-            {
-                queryable = queryable.Take(t.Top.Value);
-            }
-
             if (query is ICanExpand e && e.Expand?.Length > 0)
             {
                 queryable = e.Expand.Aggregate(queryable, (current, expand) => current.Include(expand));
@@ -38,6 +28,16 @@ namespace Service.Common
             if (query is ICanFilter<T> f && f.Filter != null)
             {
                 queryable = queryable.Where(f.Filter);
+            }
+
+            if (query is ICanSkip s)
+            {
+                queryable = queryable.Skip(s.Skip);
+            }
+
+            if (query is ICanTop t && t.Top.HasValue)
+            {
+                queryable = queryable.Take(t.Top.Value);
             }
 
             return queryable;

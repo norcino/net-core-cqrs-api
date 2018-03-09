@@ -34,7 +34,7 @@ namespace Application.Api.Controllers
 
         public Task<List<Transaction>> Get(ODataQueryOptions<Transaction> queryOptions)
         {
-            var query = ApplyODataQueryConditions<Category, GetTransactionsQuery>(queryOptions, new GetTransactionsQuery());
+            var query = ApplyODataQueryConditions<Transaction, GetTransactionsQuery>(queryOptions, new GetTransactionsQuery());
             return _serviceManager.ProcessQueryAsync(query);
         }
 

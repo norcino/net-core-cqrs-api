@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 using Data.Entity;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,43 +10,35 @@ namespace Data.Context
     public class HouseKeeperContext : BaseContext<HouseKeeperContext>, IHouseKeeperContext
     {
         public HouseKeeperContext(DbContextOptions options) : base(options)
-        {
-        }
+        { }
 
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<Transaction> Transactions { get; set; }
-
+        
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Category>(entity =>
+            modelBuilder.HasDefaultSchema("dbo");
+            
+            // Get all mappings from the current assembly
+            var mappingTypes = Assembly.GetAssembly(GetType())
+                .GetTypes()
+                .Where(t => t.GetInterfaces()
+                .Any(i => i.GetTypeInfo().IsGenericType && i.GetGenericTypeDefinition() == typeof(IEntityTypeConfiguration<>)));
+
+            // Get the generic Entity method of the ModelBuilder type
+            var entityMethod = typeof(ModelBuilder).GetMethods().Single(x => x.Name == "ApplyConfiguration");
+
+            foreach (var mappingType in mappingTypes)
             {
-                entity.Property(e => e.Description)
-                    .IsRequired()
-                    .HasColumnType("varchar(500)");
+                // Get the type of entity to be mapped
+                var genericTypeArg = mappingType.GetInterfaces().Single().GenericTypeArguments.Single();
 
-                entity.Property(e => e.Name)
-                    .IsRequired()
-                    .HasColumnType("varchar(250)");
-            });
-
-            modelBuilder.Entity<Transaction>(entity =>
-            {
-                entity.Property(e => e.CategoryId).HasDefaultValueSql("0");
-
-                entity.Property(e => e.Credit).HasColumnType("money");
-
-                entity.Property(e => e.Debit).HasColumnType("money");
-
-                entity.Property(e => e.Description).HasColumnType("varchar(500)");
-
-                entity.Property(e => e.Recorded).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Category)
-                    .WithMany(p => p.Transactions)
-                    .HasForeignKey(d => d.CategoryId)
-                    .OnDelete(DeleteBehavior.Restrict)
-                    .HasConstraintName("FK_Transaction_Categories");
-            });
+                // Create the method using the generic type
+                var genericEntityMethod = entityMethod.MakeGenericMethod(genericTypeArg);
+                
+                // Invoke the mapping method
+                genericEntityMethod.Invoke(modelBuilder, new [] { Activator.CreateInstance(mappingType) });
+            }
         }
 
         public async Task<int> SaveChangesAsync()

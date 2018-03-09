@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OData.Edm;
@@ -25,22 +26,12 @@ namespace Application.Api.Controllers
             {
                 q.Count = queryOptions.Count?.Value ?? false;
             }
-
-            if (query is ICanSkip s && queryOptions.Skip != null)
-            {
-                s.Skip = queryOptions.Skip?.Value ?? 0;
-            }
-
-            if (query is ICanTop t && queryOptions.Top != null)
-            {
-                t.Top = queryOptions.Top?.Value;
-            }
-
+            
             if (query is ICanExpand e)
             {
                 e.Expand = queryOptions.SelectExpand?.RawExpand?.Split(',');
             }
-
+            
             if (query is ICanFilter<TEntity> f && queryOptions.Filter != null)
             {
                 f.Filter = queryOptions.Filter.GetFilterExpression<TEntity>();
@@ -62,7 +53,17 @@ namespace Application.Api.Controllers
                     orderClause = orderClause.ThenBy;
                 }
             }
-           
+
+            if (query is ICanSkip s && queryOptions.Skip != null)
+            {
+                s.Skip = queryOptions.Skip?.Value ?? 0;
+            }
+
+            if (query is ICanTop t && queryOptions.Top != null)
+            {
+                t.Top = queryOptions.Top?.Value;
+            }
+
             return query;
         }
     }
