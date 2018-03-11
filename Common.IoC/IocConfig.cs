@@ -9,8 +9,6 @@ using Data.Entity;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -41,31 +39,28 @@ namespace Common.IoC
             {
                 if (hostingEnvironment == null || hostingEnvironment.IsTesting())
                 {
-                    var connection = new SqliteConnection("DataSource=:memory:");
+                    var connection = new SqliteConnection("DataSource='file::memory:?cache=shared'");
                     connection.Open();
                     options.UseSqlite(connection);
-//                        options.UseInMemoryDatabase("UniqueInMemDbHouseKeeping");
-//                        options.ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
-//                    options.UseLoggerFactory(MyLoggerFactory);
+                    options.UseLoggerFactory(MyLoggerFactory);
                 }
                 else
                 {
                     options.UseSqlServer(connectionString);
                     options.UseLoggerFactory(MyLoggerFactory);
-                    
                 }
             });
 
             if (hostingEnvironment == null || hostingEnvironment.IsTesting())
             {
-                services.AddTransient<IHouseKeeperContext>(service => service.GetService<HouseKeeperContext>());
-            } else {
                 services.AddSingleton<IHouseKeeperContext>(service =>
                 {
                     var context = service.GetService<HouseKeeperContext>();
                     context.Database.EnsureCreated();
                     return context;
                 });
+            } else {
+                services.AddTransient<IHouseKeeperContext>(service => service.GetService<HouseKeeperContext>());
             }
         }
 
