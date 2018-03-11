@@ -1,16 +1,12 @@
 ﻿using System;
 using Common.IoC;
-using Data.Entity;
-using Microsoft.AspNet.OData.Builder;
 using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.OData;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.OData.Edm;
 
 namespace Application.Api
 {
@@ -18,9 +14,12 @@ namespace Application.Api
     {
         private readonly ILogger<Startup> _logger;
         public IConfigurationRoot Configuration { get; }
+        public IHostingEnvironment HostingEnvironment { get; }
 
         public Startup(IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            HostingEnvironment = env;
+            
             _logger = loggerFactory.CreateLogger<Startup>();
 
             var builder = new ConfigurationBuilder()
@@ -37,10 +36,9 @@ namespace Application.Api
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddFile(Configuration.GetValue<string>("LogFile"));
             
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsTesting())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseBrowserLink();
                 loggerFactory.AddDebug();
             }
 
@@ -70,7 +68,7 @@ namespace Application.Api
             services.AddSingleton<IConfiguration>(Configuration);
 
             // Entity Framework context registration
-            IocConfig.RegisterContext(services, Configuration.GetConnectionString(Constants.ConfigConnectionStringName));
+            IocConfig.RegisterContext(services, Configuration.GetConnectionString(Constants.ConfigConnectionStringName), HostingEnvironment);
             
             // Register service manager
             IocConfig.RegisterServiceManager(services);

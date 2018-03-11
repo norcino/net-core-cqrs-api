@@ -3,7 +3,6 @@ using System.Data;
 using Common.IoC;
 using Data.Context;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,27 +23,11 @@ namespace Common.IntegrationTests
         public void Initialize()
         {
             var serviceCollection = new ServiceCollection();
-
             var builder = new ConfigurationBuilder();
-
-            builder.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddEnvironmentVariables();
+            builder.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true).AddEnvironmentVariables();
             var configuration = builder.Build();
 
-            if (UseInMemoryDatabase)
-            {
-                serviceCollection.AddDbContext<HouseKeeperContext>(options =>
-                {
-                    options.UseInMemoryDatabase(Guid.NewGuid().ToString());
-                    options.ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
-                });
-                serviceCollection.AddTransient<IHouseKeeperContext>(service => service.GetService<HouseKeeperContext>());
-            }
-            else
-            {
-                IocConfig.RegisterContext(serviceCollection, configuration.GetConnectionString("HouseKeeping_Test"));
-            }
-            
+            IocConfig.RegisterContext(serviceCollection, configuration.GetConnectionString("HouseKeeping_Test"), null);
             IocConfig.RegisterServiceManager(serviceCollection);
             IocConfig.RegisterValidators(serviceCollection);
             IocConfig.RegisterQueryHandlers(serviceCollection);

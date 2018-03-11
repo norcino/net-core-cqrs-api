@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata;
 using Common.Validation;
 using Data.Context;
 using Data.Entity;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -28,26 +30,59 @@ namespace Common.IoC
         public static readonly LoggerFactory MyLoggerFactory
             = new LoggerFactory(new[] { new ConsoleLoggerProvider((_, __) => true, true) });
 
-        public static void RegisterContext(IServiceCollection services, string connectionString)
+        public static void RegisterContext(IServiceCollection services, string connectionString, IHostingEnvironment hostingEnvironment)
         {
+            if (connectionString == null)
+                throw new ArgumentNullException(nameof(connectionString));
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+
             services.AddDbContext<HouseKeeperContext>(options =>
             {
-                options.UseSqlServer(connectionString);
-                options.UseLoggerFactory(MyLoggerFactory);
-                //options.UseMySql(connectionString);
+                if (hostingEnvironment == null || hostingEnvironment.IsTesting())
+                {
+                    var connection = new SqliteConnection("DataSource=:memory:");
+                    connection.Open();
+                    options.UseSqlite(connection);
+//                        options.UseInMemoryDatabase("UniqueInMemDbHouseKeeping");
+//                        options.ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+//                    options.UseLoggerFactory(MyLoggerFactory);
+                }
+                else
+                {
+                    options.UseSqlServer(connectionString);
+                    options.UseLoggerFactory(MyLoggerFactory);
+                    
+                }
             });
 
-            services.AddTransient<IHouseKeeperContext>(service => service.GetService<HouseKeeperContext>());
+            if (hostingEnvironment == null || hostingEnvironment.IsTesting())
+            {
+                services.AddTransient<IHouseKeeperContext>(service => service.GetService<HouseKeeperContext>());
+            } else {
+                services.AddSingleton<IHouseKeeperContext>(service =>
+                {
+                    var context = service.GetService<HouseKeeperContext>();
+                    context.Database.EnsureCreated();
+                    return context;
+                });
+            }
         }
 
         public static void RegisterValidators(IServiceCollection services)
         {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+
             services.AddTransient(typeof(ICommandValidator<CreateCategoryCommand>), typeof(CreateCategoryCommandValidator));
             services.AddTransient<IValidator<Category>>(validator => new CategoryValidator());
         }
 
         public static void RegisterServiceManager(IServiceCollection services)
         {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+
             services.AddSingleton<IServiceManager>(service => new ServiceManager(service));
         }
 
@@ -57,6 +92,9 @@ namespace Common.IoC
         /// <param name="services">Service container for IoC</param>
         public static void RegisterQueryHandlers(IServiceCollection services)
         {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+
             foreach (var assembly in AssembliesWithHandlers)
             {
                 var queryHandlers = HandlersImplementingInterfaceInAssembly(assembly, typeof(IQueryHandler<,>));
@@ -84,6 +122,9 @@ namespace Common.IoC
         /// <param name="services">Service container for IoC</param>
         public static void RegisterCommandHandlers(IServiceCollection services)
         {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+
             foreach (var assembly in AssembliesWithHandlers)
             {
                 var commandHandlers = HandlersImplementingInterfaceInAssembly(assembly, typeof(ICommandHandler<>));
