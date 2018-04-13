@@ -60,7 +60,7 @@ namespace Service.Transaction.IntegrationTests
 
             var savedUpdatedTransaction = await Context.Transactions.AsNoTracking().SingleAsync(p => p.Id == response.Result.Id);
 
-            savedUpdatedTransaction.ShouldHaveSameProperties(updateTransaction);
+            Assert.That.HaveSameProperties(savedUpdatedTransaction, updateTransaction);
         }
     }
 }

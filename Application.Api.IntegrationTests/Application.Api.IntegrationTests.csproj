@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Application.Api\Application.Api.csproj" />
     <ProjectReference Include="..\Common.Integration.Tests\Common.IntegrationTests.csproj" />
+    <ProjectReference Include="..\Data.Common.Testing.Builder\Data.Common.Testing.Builder.csproj" />
   </ItemGroup>
 
 </Project>

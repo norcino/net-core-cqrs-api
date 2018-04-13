@@ -39,7 +39,7 @@ namespace Service.Transaction.IntegrationTests
 
             Assert.IsNotNull(response);
 
-            response.ShouldHaveSameProperties(transaction);
+            Assert.That.HaveSameProperties(response, transaction);
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Data.Common.Testing.Builder
         private string _name = AnonymousData.String("Name");
         private int _id = AnonymousData.Int();
         private ICollection<Transaction> _transactions = new List<Transaction>();
-        
+
         public override Category Build()
         {
             var category = new Category

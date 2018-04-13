@@ -29,7 +29,7 @@ namespace Service.Category.Validator
 
             if (command.Category.Id != 0)
             {
-                validationResult.ValidationEntries.Add(new ValidationEntry(nameof(command.Category.Id), "{0} should not be provided"));
+                validationResult.ValidationEntries.Add(new ValidationEntry(nameof(command.Category.Id), "{0} should not be specified on creation"));
             }
             
             return (await result).Merge(validationResult);

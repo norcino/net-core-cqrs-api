@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Data.Context
 {
@@ -15,5 +16,7 @@ namespace Data.Context
         DatabaseFacade Database { get; }
 
         Task<int> SaveChangesAsync();
+
+        IModel Model { get; }
     }
 }

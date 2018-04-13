@@ -40,7 +40,7 @@ namespace Service.Transaction.IntegrationTests
 
             var createdTransaction = await Context.Transactions.SingleAsync(p => p.Id == response.Result);
 
-            createdTransaction.ShouldHaveSameProperties(transaction, "Id");
+            Assert.That.HaveSameProperties(createdTransaction, transaction, "Id");
 
             Assert.IsTrue(Context.Categories.Any());
         }

@@ -25,6 +25,8 @@ namespace Common.IoC
 {
     public class IocConfig
     {
+        public static SqliteConnection sqlLiteConnection;
+
         public static readonly LoggerFactory MyLoggerFactory
             = new LoggerFactory(new[] { new ConsoleLoggerProvider((_, __) => true, true) });
 
@@ -39,9 +41,7 @@ namespace Common.IoC
             {
                 if (hostingEnvironment == null || hostingEnvironment.IsTesting())
                 {
-                    var connection = new SqliteConnection("DataSource='file::memory:?cache=shared'");
-                    connection.Open();
-                    options.UseSqlite(connection);
+                    options.UseSqlite("DataSource='file::memory:?cache=shared'");
                     options.UseLoggerFactory(MyLoggerFactory);
                 }
                 else
@@ -53,10 +53,9 @@ namespace Common.IoC
 
             if (hostingEnvironment == null || hostingEnvironment.IsTesting())
             {
-                services.AddSingleton<IHouseKeeperContext>(service =>
+                services.AddTransient<IHouseKeeperContext>(service =>
                 {
                     var context = service.GetService<HouseKeeperContext>();
-                    context.Database.EnsureCreated();
                     return context;
                 });
             } else {

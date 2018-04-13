@@ -29,7 +29,7 @@ namespace Service.Category.IntegrationTests
 
             Assert.IsNotNull(response);
 
-            response.ShouldHaveSameProperties(category);
+            Assert.That.HaveSameProperties(response, category);
         }
     }
 }

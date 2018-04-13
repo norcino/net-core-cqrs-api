@@ -38,7 +38,7 @@ namespace Service.Category.IntegrationTests
 
             var createdCategory = await Context.Categories.SingleAsync(p => p.Id == response.Result.Id);
 
-            createdCategory.ShouldHaveSameProperties(category);
+            Assert.That.HaveSameProperties(createdCategory, category);
         }
     }
 }
