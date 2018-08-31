@@ -1,6 +1,5 @@
 using System.Linq;
 using Common.IntegrationTests;
-using Common.Tests;
 using Data.Entity;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -30,15 +29,9 @@ namespace Data.Common.Testing.Builder.Tests
             Assert.AreEqual(3, category3.Count);
 
 
-            var context = TestDataConfiguration.GetContex();
+             var context = TestDataConfiguration.GetContext();
 
             Assert.AreEqual(0, context.Categories.Count());
-
-            //            var ct = new Builder<Category>().Prepare(c =>
-            //            {
-            //                c.Name = "Manuel";
-            //                c.Description = "Bello";
-            //            }).Persist(context);
 
             var persister = new Persister<Category>(context);
 

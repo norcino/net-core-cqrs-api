@@ -41,9 +41,9 @@ namespace Application.Api.Tests
         [TestMethod]
         public void Get_invokes_ProcessQueryAsync_on_ServiceManager_passing_GetCategoriesQuery_with_correct_data()
         {
-            ODataQueryOptions<Category> queryOptions = new ODataQueryOptions<Category>(
-                new ODataQueryContext(new EdmModel(), typeof(Category), new ODataPath()),
-                new DefaultHttpRequest(new DefaultHttpContext()));
+            //ODataQueryOptions<Category> queryOptions = new ODataQueryOptions<Category>(
+            //    new ODataQueryContext(new EdmModel(), typeof(Category), new ODataPath()),
+            //    new DefaultHttpRequest(new DefaultHttpContext()));
             
             var categoryId = AnonymousData.Int();
             var response = _controller.Get(categoryId);

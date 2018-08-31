@@ -5,14 +5,10 @@ using Data.Common.Testing.Builder;
 using Data.Entity;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
-using System.Data;
-using System.Threading;
 using System.Threading.Tasks;
-using Common.IoC;
 using Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Service.Common;
 
 namespace Application.Api.IntegrationTests
 {
@@ -29,9 +25,7 @@ namespace Application.Api.IntegrationTests
         public void TestInitialize()
         {
             _client = new TestServerApiClient();
-            _context = TestDataConfiguration.GetContex();
-            _context.Database.OpenConnection();
-            _context.Database.EnsureCreated();
+            _context = TestDataConfiguration.GetContext();
             _categoryPersister = new Persister<Category>(_context);
             _categoryBuilder = new Builder<Category>();
         }

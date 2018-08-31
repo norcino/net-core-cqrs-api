@@ -62,7 +62,9 @@ namespace Data.Common.Testing.Builder
 
             var entity = new Builder<TE>().Build();
             entitySetupAction(entity);
-            return ResetKey(entity);
+            _dbSet.Add(entity);
+            _context.SaveChanges();
+            return entity;
         }
 
         /// <summary>

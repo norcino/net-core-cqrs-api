@@ -31,7 +31,11 @@ namespace Data.Context
                 .Any(i => i.GetTypeInfo().IsGenericType && i.GetGenericTypeDefinition() == typeof(IEntityTypeConfiguration<>)));
 
             // Get the generic Entity method of the ModelBuilder type
-            var entityMethod = typeof(ModelBuilder).GetMethods().Single(x => x.Name == "ApplyConfiguration");
+            var entityMethod = typeof(ModelBuilder).GetMethods().Single(x => 
+                x.Name == "ApplyConfiguration" && 
+                x.IsGenericMethod &&
+                x.GetParameters().FirstOrDefault()?.ParameterType.Name == "IEntityTypeConfiguration`1"
+            );
 
             foreach (var mappingType in mappingTypes)
             {

@@ -37,29 +37,44 @@ namespace Common.IoC
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
 
-            services.AddDbContext<HouseKeeperContext>(options =>
+            services.AddDbContextPool<HouseKeeperContext>(options =>
             {
+                // If no hosting environment is provided or is specified testing
                 if (hostingEnvironment == null || hostingEnvironment.IsTesting())
                 {
-                    options.UseSqlite("DataSource='file::memory:?cache=shared'");
-                    options.UseLoggerFactory(MyLoggerFactory);
+                    if (string.IsNullOrEmpty(connectionString))
+                    {
+                        // When there is no connection string, for testing will be used an in memory SQLite database
+                        var connection = new SqliteConnection("DataSource='file::memory:?cache=shared'");
+                        connection.Open();
+                        options.UseSqlite(connection);
+                    }
+                    else
+                    {
+                        // If a connection string is provided, a real testing database is provided
+                        options.UseSqlServer(connectionString);
+                    }
                 }
                 else
                 {
+                    // Production setup using SQL Server
                     options.UseSqlServer(connectionString);
                     options.UseLoggerFactory(MyLoggerFactory);
                 }
-            });
+            }, poolSize: 5);
 
             if (hostingEnvironment == null || hostingEnvironment.IsTesting())
             {
-                services.AddTransient<IHouseKeeperContext>(service =>
+                services.AddSingleton<IHouseKeeperContext>(service =>
                 {
-                    var context = service.GetService<HouseKeeperContext>();
+                    var context = services.BuildServiceProvider().GetService<HouseKeeperContext>();
+                    context.Database.EnsureCreated();
                     return context;
-                });
-            } else {
-                services.AddTransient<IHouseKeeperContext>(service => service.GetService<HouseKeeperContext>());
+                });  
+            }
+            else
+            {
+                services.AddTransient<IHouseKeeperContext>(service => services.BuildServiceProvider().GetService<HouseKeeperContext>());
             }
         }
 

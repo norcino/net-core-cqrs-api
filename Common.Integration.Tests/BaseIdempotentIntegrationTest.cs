@@ -23,11 +23,15 @@ namespace Common.IntegrationTests
         public void Initialize()
         {
             var serviceCollection = new ServiceCollection();
-            var builder = new ConfigurationBuilder();
-            builder.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true).AddEnvironmentVariables();
-            var configuration = builder.Build();
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables()
+                .Build();
 
-            IocConfig.RegisterContext(serviceCollection, configuration.GetConnectionString("HouseKeeping_Test"), null);
+            var useInMemoryDb = configuration?.GetValue<bool>("UseInMemoryDatabase") ?? true;
+            var connectionString = configuration?.GetConnectionString("DB") ?? "";
+
+            IocConfig.RegisterContext(serviceCollection, useInMemoryDb ? "" : connectionString, null);
             IocConfig.RegisterServiceManager(serviceCollection);
             IocConfig.RegisterValidators(serviceCollection);
             IocConfig.RegisterQueryHandlers(serviceCollection);
