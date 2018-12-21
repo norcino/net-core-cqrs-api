@@ -44,7 +44,8 @@ namespace Application.Api.Tests
             ODataQueryOptions<Category> queryOptions = new ODataQueryOptions<Category>(
                 new ODataQueryContext(new EdmModel(), typeof(Category), new ODataPath()),
                 new DefaultHttpRequest(new DefaultHttpContext()));
-            
+           // ApplyODataQueryConditions<Category, GetCategoriesQuery>(queryOptions, new GetCategoriesQuery());
+
             var categoryId = AnonymousData.Int();
             var response = _controller.Get(categoryId);
             _serviceManagerMock.Verify(sm => sm.ProcessQueryAsync(It.Is<GetCategoriesQuery>(c =>
