@@ -53,7 +53,7 @@ namespace Service.Category.Tests
             Assert.IsTrue(result.ValidationEntries.Any(e =>
                 e.PropertyName == nameof(command.Category.Id) &&
                 e.Severity == Severity.Error &&
-                e.ErrorMessage == "{0} should not be provided"));
+                e.ErrorMessage == "{0} should not be specified on creation"));
         }
     }
 }

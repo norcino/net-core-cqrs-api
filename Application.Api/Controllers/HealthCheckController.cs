@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Reflection;
+using Common.IoC;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using Microsoft.VisualBasic;
 using Service.Common;
 
 namespace Application.Api.Controllers

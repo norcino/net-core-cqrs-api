@@ -49,7 +49,7 @@ namespace Application.Api.Controllers
                 return new CreatedAtRouteResult("GetCategoryById", new {Id = result.Result}, result);
             }
 
-            return StatusCode(StatusCodes.Status422UnprocessableEntity, result);
+            return StatusCode(StatusCodes.Status400BadRequest, result);
         }
     }
 }

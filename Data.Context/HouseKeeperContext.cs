@@ -14,7 +14,12 @@ namespace Data.Context
 
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<Transaction> Transactions { get; set; }
-        
+
+        public new DbSet<T> Set<T>() where T : class, new()
+        {
+            return base.Set<T>();
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasDefaultSchema("dbo");
@@ -26,7 +31,11 @@ namespace Data.Context
                 .Any(i => i.GetTypeInfo().IsGenericType && i.GetGenericTypeDefinition() == typeof(IEntityTypeConfiguration<>)));
 
             // Get the generic Entity method of the ModelBuilder type
-            var entityMethod = typeof(ModelBuilder).GetMethods().Single(x => x.Name == "ApplyConfiguration");
+            var entityMethod = typeof(ModelBuilder).GetMethods().Single(x => 
+                x.Name == "ApplyConfiguration" && 
+                x.IsGenericMethod &&
+                x.GetParameters().FirstOrDefault()?.ParameterType.Name == "IEntityTypeConfiguration`1"
+            );
 
             foreach (var mappingType in mappingTypes)
             {

@@ -1,7 +1,10 @@
-﻿using System.Data.Common;
+﻿using System;
+using System.Data.Common;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Data.Context
 {
@@ -9,26 +12,34 @@ namespace Data.Context
     {
         protected BaseContext()
         { }
-        
+
         protected BaseContext(DbContextOptions options) : base(options)
         {
         }
-        
+
         public void UseTransaction(DbTransaction transaction)
         {
             Database.UseTransaction(transaction);
         }
 
-//        public void SetEntityState(object entity, EntityState state)
-//        {
-//            Entry(entity).State = state;
-//        }
+        public new IModel Model => base.Model;
 
-//        protected override void OnModelCreating(DbModelBuilder modelBuilder)
-//        {
-//            modelBuilder.HasDefaultSchema(DbSchemaStrings.Dbo);
-//            modelBuilder.Configurations.AddFromAssembly(Assembly.GetAssembly(typeof(AccountDataMapping)));
-//            modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
-//        }
+        //        public void SetEntityState(object entity, EntityState state)
+        //        {
+        //            Entry(entity).State = state;
+        //        }
+
+        //        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        //        {
+        //            modelBuilder.HasDefaultSchema(DbSchemaStrings.Dbo);
+        //            modelBuilder.Configurations.AddFromAssembly(Assembly.GetAssembly(typeof(AccountDataMapping)));
+        //            modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
+        //        }
+
+        public override void Dispose()
+        {
+            Database?.CloseConnection();
+            //    base.Dispose();
+        }
     }
 }
