@@ -2,24 +2,44 @@ using System.Linq;
 using Common.IntegrationTests;
 using Data.Entity;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Common.Tests.FluentAssertion;
 
 namespace Data.Common.Testing.Builder.Tests
 {
     [TestClass]
-    public class CategoryBuilderTest
+    public class PersisterTest : BaseIdempotentIntegrationTest
     {
+        [TestMethod]
+        public void Persist_should_save_entity_to_the_database_with_default_values()
+        {
+            var category = Persister<Category>.New().Persist();
+            var dbCategory = Context.Categories.FirstOrDefault(c => c.Id == category.Id);
+
+            Assert.That.This(category).HasSameProperties(dbCategory);
+        }
+
+        [TestMethod]
+        public void Persist_passing_10_should_save_10_entities_to_the_database_with_default_values()
+        {
+            var categories = Persister<Category>.New().Persist(10);
+            Assert.That.All(categories).HaveCount(10);
+
+            Assert.That.All(categories).Are(c => c != null);
+            // TODO
+            //var dbCategory = Context.Categories.FirstOrDefault(c => c.Id == category.Id);
+        }
+
         [TestMethod]
         public void TestMethod1()
         {
-            var category = CategoryBuilder.New().Build();
-            var category2 = CategoryBuilder.New().Build(2);
-            var category3 = CategoryBuilder.New().Build(3, (c, i) =>
+            var category = Builder<Category>.New().Build();
+            var category2 = Builder<Category>.New().BuildMany(2);
+            var category3 = Builder<Category>.New().BuildMany(3, (c, i) =>
             {
                 c.Name = $"Name_{i}";
-                return c;
             });
 
-            var categoryF = CategoryBuilder.New().Build((c) =>
+            var categoryF = Builder<Category>.New().Build((c) =>
             {
                 c.Name = "Name_asdasdad";
                 c.Active = false;
@@ -27,9 +47,8 @@ namespace Data.Common.Testing.Builder.Tests
 
             Assert.AreEqual(2, category2.Count);
             Assert.AreEqual(3, category3.Count);
-
-
-             var context = TestDataConfiguration.GetContext();
+            
+             var context = ContextProvider.GetContext();
 
             Assert.AreEqual(0, context.Categories.Count());
 

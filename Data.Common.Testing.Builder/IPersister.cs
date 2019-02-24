@@ -18,7 +18,7 @@ namespace Data.Common.Testing.Builder
         TE Persist();
 
         /// <summary>
-        /// Perstist the provided object
+        /// Persist the provided object
         /// </summary>
         /// <param name="entity">Entity to be saved</param>
         /// <returns>The saved entity</returns>
@@ -30,15 +30,15 @@ namespace Data.Common.Testing.Builder
         /// every entity created for saving.
         /// </summary>
         /// <param name="numberOfEntities">Number of entities to be created</param>
-        /// <param name="entitySetupAction">Action to be used to create each entity, this action genric type int is the index of the entity which will be created</param>
+        /// <param name="entitySetupAction">Action to be used to create each entity, this action generic type int is the index of the entity which will be created</param>
         /// <returns>List of created entities</returns>
         List<TE> Persist(int numberOfEntities, Action<TE, int> entitySetupAction = null);
 
         /// <summary>
         /// Persist a new entity using the parameter action to create it
         /// </summary>
-        /// <param name="entitySetupAction">Action to be used to inistialize the entity to be saved</param>
-        /// <returns>Saved enditity</returns>
+        /// <param name="entitySetupAction">Action to be used to initialize the entity to be saved</param>
+        /// <returns>Saved entity</returns>
         TE Persist(Action<TE> entitySetupAction);
     }
 }

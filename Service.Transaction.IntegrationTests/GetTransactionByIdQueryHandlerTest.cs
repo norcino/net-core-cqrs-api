@@ -2,14 +2,14 @@ using System;
 using System.Globalization;
 using System.Threading.Tasks;
 using Common.IntegrationTests;
-using Common.Tests;
+using Common.Tests.FluentAssertion;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Service.Transaction.Query;
 
 namespace Service.Transaction.IntegrationTests
 {
     [TestClass]
-    public class GetTransactionByIdQueryHandlerTest : BaseIdempotentIntegrationTest
+    public class GetTransactionByIdQueryHandlerTest : BaseServiceIntegrationTest
     {
         [TestMethod]
         public async Task Handler_get_transaction_by_id_with_the_correct_properties()
@@ -35,11 +35,10 @@ namespace Service.Transaction.IntegrationTests
             await Context.SaveChangesAsync();
 
             var query = new GetTransactionByIdQuery(transaction.Id);
-            var response = await ServiceManager.ProcessQueryAsync(query);
+            var dbTransaction = await ServiceManager.ProcessQueryAsync(query);
 
-            Assert.IsNotNull(response);
-
-            Assert.That.HaveSameProperties(response, transaction);
+            Assert.IsNotNull(dbTransaction);
+            Assert.That.This(dbTransaction).HasSameProperties(transaction);
         }
     }
 }

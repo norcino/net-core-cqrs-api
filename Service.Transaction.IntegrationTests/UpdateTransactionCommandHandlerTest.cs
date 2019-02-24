@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Common.IntegrationTests;
-using Common.Tests;
+using Common.Tests.FluentAssertion;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Service.Transaction.Command;
@@ -9,7 +9,7 @@ using Service.Transaction.Command;
 namespace Service.Transaction.IntegrationTests
 {
     [TestClass]
-    public class UpdateTransactionCommandHandlerTest : BaseIdempotentIntegrationTest
+    public class UpdateTransactionCommandHandlerTest : BaseServiceIntegrationTest
     {
         [TestMethod]
         public async Task Handler_update_transaction_with_the_correct_properties()
@@ -60,7 +60,7 @@ namespace Service.Transaction.IntegrationTests
 
             var savedUpdatedTransaction = await Context.Transactions.AsNoTracking().SingleAsync(p => p.Id == response.Result.Id);
 
-            Assert.That.HaveSameProperties(savedUpdatedTransaction, updateTransaction);
+            Assert.That.This(savedUpdatedTransaction).HasSameProperties(updateTransaction);
         }
     }
 }

@@ -22,12 +22,12 @@ namespace Common.Tests
         /// </summary>
         /// <param name="length">Maximum number of digits</param>
         /// <returns>Random number</returns>
-        public static int Int(int length = 3)
+        public static int Int(int length = 5, bool allowZero = true)
         {
             if (length < 1)
                 throw new ArgumentOutOfRangeException($"{nameof(length)} must be greater than zero");
 
-            return length > 0 ? GetThreadRandom().Next((10 ^ length) - 1) : 1;
+            return length > 0 ? GetThreadRandom().Next(allowZero ? 0 : 1, (10 ^ length) - 1) : 1;
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Common.Tests
         }
 
         /// <summary>
-        /// Generate a randomic boolean value
+        /// Generate a random boolean value
         /// </summary>
         /// <returns>Boolean value</returns>
         public static bool Bool()
@@ -60,7 +60,7 @@ namespace Common.Tests
         }
 
         /// <summary>
-        /// Generate a randomic signed byte value
+        /// Generate a random signed byte value
         /// </summary>
         /// <returns>Signed byte value</returns>
         public static sbyte Byte()
@@ -69,7 +69,7 @@ namespace Common.Tests
         }
 
         /// <summary>
-        /// Generate a randomic short value
+        /// Generate a random short value
         /// </summary>
         /// <returns>Short value</returns>
         public static short Short()
@@ -78,7 +78,7 @@ namespace Common.Tests
         }
 
         /// <summary>
-        /// Generate a randomic long value
+        /// Generate a random long value
         /// </summary>
         /// <returns>Long value</returns>
         public static object Long()
@@ -96,6 +96,15 @@ namespace Common.Tests
         }
 
         /// <summary>
+        /// Generate random decimal
+        /// </summary>
+        /// <returns>Decimal value</returns>
+        public static decimal Decimal()
+        {
+            return (decimal)GetThreadRandom().NextDouble();
+        }
+
+        /// <summary>
         /// Generate a random float
         /// </summary>
         /// <returns>Float value</returns>
@@ -110,9 +119,9 @@ namespace Common.Tests
         }
 
         /// <summary>
-        /// Generate a rondom date time in the future, it is possible to request a date time in the past.
+        /// Generate a random date time in the future, it is possible to request a date time in the past.
         /// </summary>
-        /// <param name="future">Optiona boolean value, default value true will generate a date in the future</param>
+        /// <param name="future">Optional boolean value, default value true will generate a date in the future</param>
         /// <returns>Random DateTime</returns>
         public static DateTime DateTime(bool future  = true)
         {
@@ -148,7 +157,7 @@ namespace Common.Tests
                 day,
                 GetThreadRandom().Next(0, 23),
                 GetThreadRandom().Next(0, 60),
-                GetThreadRandom().Next(0, 1000));
+                GetThreadRandom().Next(0, 60));
         }
 
         /// <summary>

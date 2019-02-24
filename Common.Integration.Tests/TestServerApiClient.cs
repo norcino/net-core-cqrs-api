@@ -8,17 +8,19 @@ using Newtonsoft.Json;
 
 namespace Common.IntegrationTests
 {
-    public class TestServerApiClient
+    public class TestServerApiClient : System.IDisposable
     {
         private readonly HttpClient _client;
+        private readonly TestServer _server;
 
         public TestServerApiClient()
-        {
+        {            
             var webHostBuilder = new WebHostBuilder();
             webHostBuilder.UseEnvironment("Test");
             webHostBuilder.UseStartup<Startup>();
-            var server = new TestServer(webHostBuilder);
-            _client = server.CreateClient();
+            
+            _server = new TestServer(webHostBuilder);            
+            _client = _server.CreateClient();
         }
 
         public async Task<HttpResponseMessage> PostAsync<T>(string url, T entity)
@@ -36,6 +38,12 @@ namespace Common.IntegrationTests
         {
             var response = await GetAsync(url);
             return response.To<T>();
+        }
+
+        public void Dispose()
+        {
+            _server?.Dispose();
+            _client?.Dispose();
         }
     }
 

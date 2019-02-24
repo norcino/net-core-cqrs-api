@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Common.IntegrationTests;
-using Common.Tests;
+using Common.Tests.FluentAssertion;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Service.Category.Command;
@@ -9,7 +9,7 @@ using Service.Category.Command;
 namespace Service.Category.IntegrationTests
 {
     [TestClass]
-    public class CreateCategoryCommandHandlerTest : BaseIdempotentIntegrationTest
+    public class CreateCategoryCommandHandlerTest : BaseServiceIntegrationTest
     {
         [TestMethod]
         public async Task Handler_creates_new_category_with_the_correct_properties()
@@ -28,8 +28,7 @@ namespace Service.Category.IntegrationTests
 
             var createdCategory = await Context.Categories.SingleAsync(p => p.Id == response.Result);
 
-            Assert.That.HaveSameProperties(createdCategory, category, "Id");
-
+            Assert.That.This(createdCategory).HasSameProperties(category, "Id");
             Assert.IsTrue(Context.Categories.Any());
         }
     }

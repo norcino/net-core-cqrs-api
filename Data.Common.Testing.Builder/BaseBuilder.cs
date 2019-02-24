@@ -22,7 +22,7 @@ namespace Data.Common.Testing.Builder
         }
 
         /// <summary>
-        /// Generates the entity according with the customization and returs it
+        /// Generates the entity according with the customization and returns it
         /// </summary>
         /// <returns>Entity generated</returns>
         public virtual TE Build()

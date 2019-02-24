@@ -7,7 +7,6 @@ using Common.Validation;
 using Data.Context;
 using Data.Entity;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -20,61 +19,91 @@ using Service.Category.Validator;
 using Service.Common.CommandAttributes;
 using Service.Common.CommandHandlerDecorators;
 using Service.Common.QueryHandlerDecorators;
+using Microsoft.Extensions.Configuration;
+using System.Configuration;
 
 namespace Common.IoC
 {
     public class IocConfig
     {
-        public static SqliteConnection sqlLiteConnection;
+        public static readonly LoggerFactory MyLoggerFactory = new LoggerFactory(new[] { new ConsoleLoggerProvider((_, __) => true, true) });
 
-        public static readonly LoggerFactory MyLoggerFactory
-            = new LoggerFactory(new[] { new ConsoleLoggerProvider((_, __) => true, true) });
-
-        public static void RegisterContext(IServiceCollection services, string connectionString, IHostingEnvironment hostingEnvironment)
+        public static void RegisterContext(IServiceCollection services, IHostingEnvironment hostingEnvironment)
         {
-            if (connectionString == null)
-                throw new ArgumentNullException(nameof(connectionString));
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
 
-            services.AddDbContextPool<HouseKeeperContext>(options =>
-            {
-                // If no hosting environment is provided or is specified testing
-                if (hostingEnvironment == null || hostingEnvironment.IsTesting())
-                {
-                    if (string.IsNullOrEmpty(connectionString))
-                    {
-                        // When there is no connection string, for testing will be used an in memory SQLite database
-                        var connection = new SqliteConnection("DataSource='file::memory:?cache=shared'");
-                        connection.Open();
-                        options.UseSqlite(connection);
-                    }
-                    else
-                    {
-                        // If a connection string is provided, a real testing database is provided
-                        options.UseSqlServer(connectionString);
-                    }
-                }
-                else
-                {
-                    // Production setup using SQL Server
-                    options.UseSqlServer(connectionString);
-                    options.UseLoggerFactory(MyLoggerFactory);
-                }
-            }, poolSize: 5);
+            var serviceProvider = services.BuildServiceProvider();
+            var configuration = serviceProvider.GetService<IConfiguration>();            
+            var connectionString = configuration.GetConnectionString(Constants.ConfigConnectionStringName);
+            var databaseType = DatabaseType.SQLServer;
 
-            if (hostingEnvironment == null || hostingEnvironment.IsTesting())
+            try
             {
-                services.AddSingleton<IHouseKeeperContext>(service =>
-                {
-                    var context = services.BuildServiceProvider().GetService<HouseKeeperContext>();
-                    context.Database.EnsureCreated();
-                    return context;
-                });  
+                databaseType = configuration?.GetValue<DatabaseType>("DatabaseType") ?? DatabaseType.SQLServer;
+            }catch
+            {
+                MyLoggerFactory.CreateLogger<IocConfig>()?.LogWarning("Missing or invalid configuration: DatabaseType");
+                databaseType = DatabaseType.SQLServer;
             }
-            else
+
+            if(hostingEnvironment != null && hostingEnvironment.IsProduction())
             {
-                services.AddTransient<IHouseKeeperContext>(service => services.BuildServiceProvider().GetService<HouseKeeperContext>());
+                if(databaseType == DatabaseType.SQLiteInMemory)
+                {
+                    throw new ConfigurationErrorsException($"Cannot use database type {databaseType} for production environment");
+                }
+            }
+
+            switch (databaseType)
+            {
+                case DatabaseType.SQLiteInMemory:
+                    // Use SQLite in memory database for testing
+                    services.AddDbContext<HouseKeeperContext>(options =>
+                    {
+                        options.UseSqlite($"DataSource='file::memory:?cache=shared'");
+                    });
+
+                    // Use singleton context when using SQLite in memory if the connection is closed the database is going to be destroyed
+                    // so must use a singleton context, open the connection and manually close it when disposing the context
+                    services.AddSingleton<IHouseKeeperContext>(s => {
+                        var context = s.GetService<HouseKeeperContext>();
+                        context.Database.OpenConnection();
+                        context.Database.EnsureCreated();
+                        return context;
+                    });
+                    break;
+                case DatabaseType.SQLServer:
+                default:
+                    // Use SQL Server testing configuration
+                    if (hostingEnvironment == null || hostingEnvironment.IsTesting())
+                    {
+                        services.AddDbContext<HouseKeeperContext>(options =>
+                        {
+                            options.UseSqlServer(connectionString);
+                        });
+
+                        services.AddSingleton<IHouseKeeperContext>(s => {
+                            var context = s.GetService<HouseKeeperContext>();
+                            context.Database.EnsureCreated();
+                            return context;
+                        });
+
+                        break;
+                    }
+
+                    // Use SQL Server production configuration
+                    services.AddDbContextPool<HouseKeeperContext>(options =>
+                    {
+                        // Production setup using SQL Server
+                        options.UseSqlServer(connectionString);
+                        options.UseLoggerFactory(MyLoggerFactory);
+                    }, poolSize: 5);
+
+                    services.AddTransient<IHouseKeeperContext>(service =>
+                        services.BuildServiceProvider()
+                        .GetService<HouseKeeperContext>());
+                    break;            
             }
         }
 
@@ -158,7 +187,7 @@ namespace Common.IoC
 
         private static Type GetValidatorInterfaceType(Type interfaceType)
         {
-            // Create the generic interface type that an ipotetical command validator would have, the validators are optional
+            // Create the generic interface type that an hypothetical command validator would have, the validators are optional
             return typeof(ICommandValidator<>).MakeGenericType(interfaceType.GetGenericArguments());
         }
 
@@ -204,7 +233,7 @@ namespace Common.IoC
                     return optionalDependencyType == null 
                         // Standard decorator and handler constructor
                         ? Activator.CreateInstance(decoratorType, handler, serviceProvider.GetService(loggerType)) 
-                        // Custom decorator constroctor that receives an additional type
+                        // Custom decorator constructor that receives an additional type
                         : Activator.CreateInstance(decoratorType, handler, serviceProvider.GetService(loggerType), serviceProvider.GetService(optionalDependencyType));
                 }
 

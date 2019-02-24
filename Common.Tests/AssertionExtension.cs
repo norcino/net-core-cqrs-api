@@ -1,16 +1,19 @@
 ﻿using System;
+using System.Linq;
 using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Common.Tests
+namespace Common.Tests.FluentAssertion
 {
     /// <summary>
     /// Add assertion extensions
     /// </summary>
-    public static class AssertExtension
+    public static class AssertFluentExtension
     {
         #region HttpResponse Status Codes
         public static void IsOkHttpResponse(this Assert assert, HttpResponseMessage response)
@@ -49,37 +52,58 @@ namespace Common.Tests
         }
         #endregion
 
+        #region Objects
+        public static AssertObject<T> This<T>(this Assert assert, T subject)
+        {
+            return new AssertObject<T>(subject);
+        }
+   
+        public static AssertObject<T> And<T>(this AssertObject<T> assertObject)
+        {
+            return assertObject;
+        }
+        public static AssertObject<T> HasValue<T>(this AssertObject<T> assertObject, object value)
+        {
+            Assert.AreEqual(assertObject.Object, value);
+            return assertObject;
+        }
+        public static AssertObject<T> IsNotNull<T>(this AssertObject<T> assertObject)
+        {
+            Assert.IsNotNull(assertObject.Object, "The object is null");
+            return assertObject;
+        }
+        #endregion
+
         #region Types
         /// <summary>
-        /// Check that the object has a specific type
+        /// Verify that the object has the desired type
         /// </summary>
-        /// <typeparam name="T">Expected Type</typeparam>
-        /// <param name="assert">Assert object</param>
-        /// <param name="obj">Object under test</param>
-        public static void IsOfType<T>(this Assert assert, object obj)
+        /// <typeparam name="T">Type of the object</typeparam>
+        /// <typeparam name="O">Expected Object type to verify</typeparam>
+        /// <param name="assertObject">Assert object</param>
+        public static void IsOfType<T,O>(this AssertObject<O> assertObject)
         {
-            if (obj is T)
+            if (assertObject.Object is T)
             {
                 return;
             }
-            throw new AssertFailedException($"Expected type {typeof(T)} but was {obj.GetType()}");
+            throw new AssertFailedException($"Expected type {typeof(T)} but was {assertObject.GetType()}");
         }
         #endregion
 
         #region Object properties
         /// <summary>
-        /// Veriry that two objects have the same properties, this will ignore the comparison for objects and collections
+        /// Verify that two objects have the same properties, this will ignore the comparison for objects and collections
         /// </summary>
-        /// <param name="assert">Assert object</param>
-        /// <param name="obj">Object under test</param>
+        /// <param name="assertObject">Assert object</param>
         /// <param name="comparedObject">Object to be compared with</param>
         /// <param name="exclusions">String array with the list of properties to not compare</param>
-        public static void HaveSameProperties(this Assert assert, object obj, object comparedObject, params string[] exclusions)
+        public static void HasSameProperties<T>(this AssertObject<T> assertObject, object comparedObject, params string[] exclusions)
         {
-            Assert.IsNotNull(obj);
+            Assert.IsNotNull(assertObject.Object);
             Assert.IsNotNull(comparedObject);
 
-            foreach (var propertyInfo in obj.GetType().GetProperties())
+            foreach (var propertyInfo in assertObject.Object.GetType().GetProperties())
             {
                 // Exclude properties
                 if (exclusions != null && ((IList) exclusions).Contains(propertyInfo.Name)) continue;
@@ -87,7 +111,7 @@ namespace Common.Tests
                 // Ignore Objects and Collections
                 if (propertyInfo.PropertyType.GetTypeInfo().IsValueType || propertyInfo.PropertyType == typeof(string))
                 {
-                    var objectValue = obj.GetType().GetProperty(propertyInfo.Name).GetValue(obj, null);
+                    var objectValue = assertObject.Object.GetType().GetProperty(propertyInfo.Name).GetValue(assertObject.Object, null);
                     var comparedObjectValue = comparedObject.GetType().GetProperty(propertyInfo.Name).GetValue(comparedObject, null);
 
                     if (objectValue is DateTime)
@@ -98,21 +122,86 @@ namespace Common.Tests
                         continue;
                     }
 
-                    Assert.AreEqual(objectValue, comparedObjectValue, $"Property '{propertyInfo.Name}' of type {obj.GetType()} has value {objectValue} but was expected {comparedObjectValue}");
+                    Assert.AreEqual(objectValue, comparedObjectValue, $"Property '{propertyInfo.Name}' of type {assertObject.Object.GetType()} has value {objectValue} but was expected {comparedObjectValue}");
                 }
             }
         }
         #endregion
 
         #region Collections
-        public static void HasCountOf(this Assert assert, int expectedCount, ICollection collection)
+        public static AssertCollection<T> IsNotNull<T>(this AssertCollection<T> assertCollection)
         {
-            if(collection == null)
-                throw new AssertFailedException($"Expected {expectedCount} elements, but the collection was null");
+            Assert.IsNotNull(assertCollection.Collection);
+            return assertCollection;
+        }
 
-            if (expectedCount != collection.Count)
-                throw new AssertFailedException($"Expected {expectedCount} elements, but the collection had {collection.Count}");
+        public static AssertCollection<T> IsNotNullOrEmpty<T>(this AssertCollection<T> assertCollection)
+        {
+            Assert.IsNotNull(assertCollection.Collection, "The collection is null");
+            Assert.IsTrue(assertCollection.Collection.Any(), "The collection is empty");
+            return assertCollection;
+        }
+
+        /// <summary>
+        /// Make sure that each element of a collection matches the specified criteria in the function
+        /// </summary>
+        /// <typeparam name="T">Generic type for the collection</typeparam>
+        /// <param name="assertCollection"></param>
+        /// <param name="assertions">Function which must return true to succeed validation</param>
+        public static void Are<T>(this AssertCollection<T> assertCollection, Func<T, bool> assertions)
+        {
+            Assert.IsTrue(assertCollection.Collection.Any(assertions));
+        }
+
+        public static void HaveCount<T>(this AssertCollection<T> assertCollection, int expectedCount) {
+            if (expectedCount != assertCollection.Collection.Count)
+                throw new AssertFailedException($"Expected {expectedCount} elements, but the collection had {assertCollection.Collection.Count}");
+        }
+
+        public static AssertCollection<T> All<T>(this Assert assert, ICollection<T> collection)
+        {
+            return new AssertCollection<T>(collection);
+        }
+
+        public static AssertCollection<T> And<T>(this AssertCollection<T> assertCollection)
+        {
+            return assertCollection;
+        }
+
+        public static AssertCollection<T> These<T>(this AssertCollection<T> assertCollection)
+        {
+            return assertCollection;
         }
         #endregion
+    }
+
+    /// <summary>
+    /// Represent a single object being subject of an assertion
+    /// </summary>
+    /// <typeparam name="T">Type of the object under test</typeparam>
+    public class AssertObject<T>
+    {
+        public readonly T Object;
+
+        public AssertObject(T subject)
+        {
+            Object = subject;
+        }
+    }
+
+    /// <summary>
+    /// Class used to create fluent assertions for collections.
+    /// To access the inner collection use the property Collection.
+    /// Note that the collection is immutable and the original collection will never be changed
+    /// </summary>
+    /// <typeparam name="T">Generic type for the collection</typeparam>
+    public class AssertCollection<T>
+    {
+        public readonly ReadOnlyCollection<T> Collection;
+
+        public AssertCollection(ICollection<T> collection)
+        {
+            Collection =  new ReadOnlyCollection<T>(collection.ToList());
+        }
     }
 }

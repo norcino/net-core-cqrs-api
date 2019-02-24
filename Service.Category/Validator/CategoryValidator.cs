@@ -14,7 +14,7 @@ namespace Service.Category.Validator
                 validationResult.ValidationEntries.Add(new ValidationEntry(nameof(subject.Name), "{0} is mandatory"));
             }
 
-            return validationResult;
+            return await Task.FromResult(validationResult);
         }
     }
 }

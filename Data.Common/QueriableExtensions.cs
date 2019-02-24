@@ -9,6 +9,9 @@ using Remotion.Linq.Parsing.Structure;
 
 namespace Data.Common
 {
+    /// <summary>
+    /// Contains Extension for IQueriable objects
+    /// </summary>
     public static class QueriableExtensions
     {
         private static readonly TypeInfo QueryCompilerTypeInfo = typeof(QueryCompiler).GetTypeInfo();
@@ -23,6 +26,12 @@ namespace Data.Common
 
         private static readonly PropertyInfo DatabaseDependenciesField = typeof(Database).GetTypeInfo().DeclaredProperties.Single(x => x.Name == "Dependencies");
 
+        /// <summary>
+        /// Transforms an IQueriable in plan SQL
+        /// </summary>
+        /// <typeparam name="TEntity">Generic entity type for the IQueriable</typeparam>
+        /// <param name="query">IQueriable representing the query which would be executed when the IQueriable is materialized</param>
+        /// <returns>SQL query generated on the deferred execution</returns>
         public static string ToSql<TEntity>(this IQueryable<TEntity> query) where TEntity : class
         {
             if (!(query is EntityQueryable<TEntity>) && !(query is InternalDbSet<TEntity>))

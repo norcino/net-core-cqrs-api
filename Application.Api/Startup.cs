@@ -66,9 +66,9 @@ namespace Application.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IConfiguration>(Configuration);
-
+            
             // Entity Framework context registration
-            IocConfig.RegisterContext(services, Configuration.GetConnectionString(Constants.ConfigConnectionStringName), HostingEnvironment);
+            IocConfig.RegisterContext(services, HostingEnvironment);
             
             // Register service manager
             IocConfig.RegisterServiceManager(services);

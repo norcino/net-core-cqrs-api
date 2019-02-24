@@ -11,20 +11,12 @@ namespace Data.Common.Testing.Builder
     public interface IBuilder<TE> where TE : class, new()
     {
         /// <summary>
-        /// Generates a default entity
+        /// Generates a default valid entity, by default does not create child entities, but this can be changed specifying the depth level.
+        /// Depth one will generate child entities, if any. Depth two will also generate grandchild entities, and so on.
         /// </summary>
+        /// <param name="hierarchyDepth">Depth lever to be reached when generating child entity objects</param>
         /// <returns>Entity generated</returns>
-        TE Build();
-
-        /// <summary>
-        /// Generates a specific amount of entities as per the number specified.
-        /// Uses the standard build method to generate each instance and uses the optional function
-        /// to customize the entity based on the creation index
-        /// </summary>
-        /// <param name="numberOfEntities">Number of entities to be created</param>
-        /// <param name="creationFunction">Override function based on the index of the created element</param>
-        /// <returns>List of the entities created</returns>
-        List<TE> Build(int numberOfEntities, Func<TE, int, TE> creationFunction = null);
+        TE Build(int hierarchyDepth);
 
         /// <summary>
         /// Generates the entity with default values and customise it applying the provided action.
@@ -32,5 +24,15 @@ namespace Data.Common.Testing.Builder
         /// <param name="entitySetupAction">Action used to customise the created entity</param>
         /// <returns>The created entity</returns>
         TE Build(Action<TE> entitySetupAction);
+
+        /// <summary>
+        /// Generates a specific amount of entities as per the number specified.
+        /// Uses the standard build method to generate each instance and uses the optional action
+        /// to customize the entity based on the creation index
+        /// </summary>
+        /// <param name="numberOfEntities">Number of entities to be created</param>
+        /// <param name="entitySetupAction">Override action based on the index of the created element</param>
+        /// <returns>List of the entities created</returns>
+        List<TE> BuildMany(int numberOfEntities, Action<TE, int> entitySetupAction = null);
     }
 }

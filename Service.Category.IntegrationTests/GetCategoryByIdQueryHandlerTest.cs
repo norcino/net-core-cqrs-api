@@ -2,14 +2,14 @@
 using System.Globalization;
 using System.Threading.Tasks;
 using Common.IntegrationTests;
-using Common.Tests;
+using Common.Tests.FluentAssertion;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Service.Category.Query;
 
 namespace Service.Category.IntegrationTests
 {
     [TestClass]
-    public class CategoryValidatorTest : BaseIdempotentIntegrationTest
+    public class CategoryValidatorTest : BaseServiceIntegrationTest
     {
         [TestMethod]
         public async Task Handler_get_category_by_id_with_the_correct_properties()
@@ -25,11 +25,11 @@ namespace Service.Category.IntegrationTests
             await Context.SaveChangesAsync();
 
             var query = new GetCategoryByIdQuery(category.Id);
-            var response = await ServiceManager.ProcessQueryAsync(query);
+            var dbCategory = await ServiceManager.ProcessQueryAsync(query);
 
-            Assert.IsNotNull(response);
+            Assert.IsNotNull(dbCategory);
 
-            Assert.That.HaveSameProperties(response, category);
+            Assert.That.This(dbCategory).HasSameProperties(category);
         }
     }
 }

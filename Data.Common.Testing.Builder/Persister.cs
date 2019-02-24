@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Common.IntegrationTests;
 using Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -8,10 +9,21 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 namespace Data.Common.Testing.Builder
 {
     /// <inheritdoc cref="IPersister{TE}"/>
-    public class Persister<TE> : IPersister<TE> where TE : class, new()
+    public class Persister<TE> : IPersister<TE>, IDisposable where TE : class, new()
     {
         private readonly IHouseKeeperContext _context;
         private readonly DbSet<TE> _dbSet;
+
+        public static Persister<TE> New()
+        {
+            return (Persister<TE>)Activator.CreateInstance(typeof(Persister<TE>));
+        }
+
+        public Persister()
+        {
+            _context = ContextProvider.GetContext();
+            _dbSet = _context.Set<TE>();
+        }
 
         public Persister(IHouseKeeperContext context)
         {
@@ -35,7 +47,7 @@ namespace Data.Common.Testing.Builder
         }
 
         /// <inheritdoc cref="IPersister{TE}.Persist(TE)"/>
-        public List<TE> Persist(int numberOfEntities, Action<TE, int> entitySetupAction = null)
+        public virtual List<TE> Persist(int numberOfEntities, Action<TE, int> entitySetupAction = null)
         {
             if (numberOfEntities < 1)
                 throw new ArgumentOutOfRangeException($"{nameof(numberOfEntities)} must be greater than zero");
@@ -55,7 +67,7 @@ namespace Data.Common.Testing.Builder
         }
 
         /// <inheritdoc cref="IPersister{TE}.Persist(TE)"/>
-        public TE Persist(Action<TE> entitySetupAction)
+        public virtual TE Persist(Action<TE> entitySetupAction)
         {
             if (entitySetupAction == null)
                 throw new ArgumentNullException($"{nameof(entitySetupAction)}");
@@ -89,27 +101,14 @@ namespace Data.Common.Testing.Builder
                 var entityProperty = entity.GetType().GetProperty(keyName);
                 var type = entityProperty.PropertyType;
 
-                if (Nullable.GetUnderlyingType(type) != null)
-                {
-                    entityProperty.SetValue(entity, null);
-                }
-                else if (type == typeof(UInt16) ||
-                         type == typeof(UInt32) ||
-                         type == typeof(UInt64) ||
-                         type == typeof(Int16) ||
-                         type == typeof(Int32) ||
-                         type == typeof(Int64) ||
-                         type == typeof(double) ||
-                         type == typeof(float))
-                {
-                    entityProperty.SetValue(entity, 0);
-                }
-                else
-                {
-                    entityProperty.SetValue(entity, null);
-                }
+                entityProperty.SetValue(entity, type.IsValueType ? Activator.CreateInstance(type) : null);
             }
             return entity;
+        }
+
+        public void Dispose()
+        {
+            _context?.Dispose();
         }
     }
 }

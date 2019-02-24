@@ -32,32 +32,33 @@ namespace Application.Api.Tests
             _controller = new CategoryController(_serviceManagerMock.Object);
         }
 
+        // TODO in generic test base for the controller, make sure Ordering, Filtering, Expansion and pagination is all supported
+
 //        public Task<List<Category>> Get(ODataQueryOptions<Category> queryOptions)
 //        {
 //            var query = ApplyODataQueryConditions<Category, GetCategoriesQuery>(queryOptions, new GetCategoriesQuery());
 //            return _serviceManager.ProcessQueryAsync(query);
 //        }
 
-        [TestMethod]
-        public void Get_invokes_ProcessQueryAsync_on_ServiceManager_passing_GetCategoriesQuery_with_correct_data()
-        {
-            ODataQueryOptions<Category> queryOptions = new ODataQueryOptions<Category>(
-                new ODataQueryContext(new EdmModel(), typeof(Category), new ODataPath()),
-                new DefaultHttpRequest(new DefaultHttpContext()));
-           // ApplyODataQueryConditions<Category, GetCategoriesQuery>(queryOptions, new GetCategoriesQuery());
+        //[TestMethod]
+        //public void Get_invokes_ProcessQueryAsync_on_ServiceManager_passing_GetCategoriesQuery_with_correct_data()
+        //{
+        //    var queryOptions = new ODataQueryOptions<Category>(new ODataQueryContext(new EdmModel(), typeof(Category), new ODataPath()), new DefaultHttpRequest(new DefaultHttpContext()));
+        //   // ApplyODataQueryConditions<Category, GetCategoriesQuery>(queryOptions, new GetCategoriesQuery());
 
-            var categoryId = AnonymousData.Int();
-            var response = _controller.Get(categoryId);
-            _serviceManagerMock.Verify(sm => sm.ProcessQueryAsync(It.Is<GetCategoriesQuery>(c =>
-                c.Top != null
-            )), Times.Once);
-        }
+        //    var categoryId = AnonymousData.Int();
+        //    var response = _controller.Get(categoryId);
+        //    _serviceManagerMock.Verify(sm => sm.ProcessQueryAsync(It.Is<GetCategoriesQuery>(c =>
+        //        c.Top != null
+        //    )), Times.Once);
+        //}
 
         [TestMethod]
         public void GetById_invokes_ProcessQueryAsync_on_ServiceManager_passing_GetCategoryByIdQuery_with_correct_data()
         {
             var categoryId = AnonymousData.Int();
             var response = _controller.Get(categoryId);
+
             _serviceManagerMock.Verify(sm => sm.ProcessQueryAsync(It.Is<GetCategoryByIdQuery>(c =>
                 c.CategoryId == categoryId
             )), Times.Once);
@@ -68,6 +69,7 @@ namespace Application.Api.Tests
         {
             var category = _builder.Build(c => c.Id = 0);
             var response = _controller.PostAsync(category);
+
             _serviceManagerMock.Verify(sm => sm.ProcessCommandAsync<int>(It.Is<CreateCategoryCommand>(c =>
                 c.Category.Description == category.Description &&
                 c.Category.Name == category.Name &&

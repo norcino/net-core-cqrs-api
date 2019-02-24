@@ -1,4 +1,5 @@
-﻿using System.Data.Common;
+﻿using System;
+using System.Data.Common;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -11,11 +12,11 @@ namespace Data.Context
     {
         protected BaseContext()
         { }
-        
+
         protected BaseContext(DbContextOptions options) : base(options)
         {
         }
-        
+
         public void UseTransaction(DbTransaction transaction)
         {
             Database.UseTransaction(transaction);
@@ -34,5 +35,11 @@ namespace Data.Context
         //            modelBuilder.Configurations.AddFromAssembly(Assembly.GetAssembly(typeof(AccountDataMapping)));
         //            modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
         //        }
+
+        public override void Dispose()
+        {
+            Database?.CloseConnection();
+            //    base.Dispose();
+        }
     }
 }
