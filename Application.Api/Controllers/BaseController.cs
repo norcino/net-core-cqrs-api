@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +21,7 @@ namespace Application.Api.Controllers
         /// <param name="query">Query object to be decorated</param>
         /// <returns>Query decorated with Expansion, Filter, Ordering and Pagination information</returns>
         public TQuery ApplyODataQueryConditions<TEntity, TQuery>(ODataQueryOptions queryOptions, TQuery query)
-        {
+        {            
             if (queryOptions == null) return query;
 
             if (query is ICanCount q && queryOptions.Count != null)
@@ -60,9 +61,12 @@ namespace Application.Api.Controllers
                 s.Skip = queryOptions.Skip?.Value ?? 0;
             }
 
-            if (query is ICanTop t && queryOptions.Top != null)
+            if (query is ICanTop)
             {
-                t.Top = queryOptions.Top?.Value;
+                var maxNumberOfResults = queryOptions.Context.DefaultQuerySettings.MaxTop ?? 0;
+                var queryLimit = queryOptions?.Top?.Value ?? 0;
+                
+                ((ICanTop)query).Top = queryLimit > 0 ? Math.Min(queryLimit, maxNumberOfResults) : maxNumberOfResults;
             }
 
             return query;

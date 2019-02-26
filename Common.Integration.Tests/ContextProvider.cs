@@ -41,9 +41,8 @@ namespace Common.IntegrationTests
 
                 var serviceCollection = new ServiceCollection();
                 serviceCollection.AddSingleton<IConfiguration>(ApplicationConfiguration);
-
-                // When not in memory database (Sql Server in memory) and Connection String is not empty (Use SQL Server)
-                _requiresDbDeletion = true;// !useInMemoryDb && !string.IsNullOrWhiteSpace(connectionString);
+                var databaseType = ApplicationConfiguration?.GetValue<DatabaseType>("DatabaseType") ?? DatabaseType.SQLServer;                
+                _requiresDbDeletion = databaseType == DatabaseType.SQLServer;
                 
                 IocConfig.RegisterContext(serviceCollection, null);
 

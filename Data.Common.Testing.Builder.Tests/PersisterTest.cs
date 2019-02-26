@@ -14,7 +14,6 @@ namespace Data.Common.Testing.Builder.Tests
         {
             var category = Persister<Category>.New().Persist();
             var dbCategory = Context.Categories.FirstOrDefault(c => c.Id == category.Id);
-
             Assert.That.This(category).HasSameProperties(dbCategory);
         }
 
@@ -23,61 +22,62 @@ namespace Data.Common.Testing.Builder.Tests
         {
             var categories = Persister<Category>.New().Persist(10);
             Assert.That.All(categories).HaveCount(10);
-
             Assert.That.All(categories).Are(c => c != null);
-            // TODO
-            //var dbCategory = Context.Categories.FirstOrDefault(c => c.Id == category.Id);
+
+            categories.ForEach(c =>
+                Assert.That.This(Context.Categories.FirstOrDefault(current => current.Id == c.Id)).HasSameProperties(c)
+            );
         }
 
-        [TestMethod]
-        public void TestMethod1()
-        {
-            var category = Builder<Category>.New().Build();
-            var category2 = Builder<Category>.New().BuildMany(2);
-            var category3 = Builder<Category>.New().BuildMany(3, (c, i) =>
-            {
-                c.Name = $"Name_{i}";
-            });
+        //[TestMethod]
+        //public void TestMethod1()
+        //{
+        //    var category = Builder<Category>.New().Build();
+        //    var category2 = Builder<Category>.New().BuildMany(2);
+        //    var category3 = Builder<Category>.New().BuildMany(3, (c, i) =>
+        //    {
+        //        c.Name = $"Name_{i}";
+        //    });
 
-            var categoryF = Builder<Category>.New().Build((c) =>
-            {
-                c.Name = "Name_asdasdad";
-                c.Active = false;
-            });
+        //    var categoryF = Builder<Category>.New().Build((c) =>
+        //    {
+        //        c.Name = "Name_asdasdad";
+        //        c.Active = false;
+        //    });
 
-            Assert.AreEqual(2, category2.Count);
-            Assert.AreEqual(3, category3.Count);
+        //    Assert.AreEqual(2, category2.Count);
+        //    Assert.AreEqual(3, category3.Count);
             
-             var context = ContextProvider.GetContext();
+        //     var context = ContextProvider.GetContext();
 
-            Assert.AreEqual(0, context.Categories.Count());
+        //    Assert.AreEqual(0, context.Categories.Count());
 
-            var persister = new Persister<Category>(context);
+        //    var persister = new Persister<Category>(context);
 
-            var ct = persister.Persist(c =>
-                {
-                    c.Name = "Manuel";
-                    c.Description = "Bello";
-                });
+        //    var ct = persister.Persist(c =>
+        //        {
+        //            c.Name = "Manuel";
+        //            c.Description = "Bello";
+        //        });
 
-            Assert.IsNotNull(ct);
+        //    Assert.IsNotNull(ct);
 
-            Assert.AreEqual(1, context.Categories.Count());
+        //    Assert.AreEqual(1, context.Categories.Count());
 
-            var loaded = context.Categories.Find(ct.Id);
+        //    var loaded = context.Categories.Find(ct.Id);
             
-            Assert.AreEqual("Manuel", loaded.Name);
-            Assert.AreEqual("Bello", loaded.Description);
+        //    Assert.AreEqual("Manuel", loaded.Name);
+        //    Assert.AreEqual("Bello", loaded.Description);
 
-            persister.Persist(100, (c, i) =>
-            {
-                c.Name = $"Manuel_{i}";
-                c.Description = "Bello";
-                c.Active = i % 2 == 0;
-            });
+        //    persister.Persist(100, (c, i) =>
+        //    {
+        //        c.Name = $"Manuel_{i}";
+        //        c.Description = "Bello";
+        //        c.Active = i % 2 == 0;
+        //    });
 
-            var tmp = context.Categories.ToList();
-            Assert.AreEqual(101, context.Categories.Count());
-        }
+        //    var tmp = context.Categories.ToList();
+        //    Assert.AreEqual(101, context.Categories.Count());
+        //}
     }
 }

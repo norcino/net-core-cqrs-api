@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using System.Linq;
 using Common.IoC;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace Application.Api.IntegrationTests
 {
@@ -24,7 +25,6 @@ namespace Application.Api.IntegrationTests
         private Persister<Category> _categoryPersister;
         private Builder<Category> _categoryBuilder;
         private IHouseKeeperContext _context;
-        protected IDbContextTransaction Transaction;
 
         [TestInitialize]
         public void TestInitialize()
@@ -38,7 +38,7 @@ namespace Application.Api.IntegrationTests
 
         [TestCleanup]
         public void Cleanup()
-        {
+        {            
             _client?.Dispose();
             _context?.Dispose();
             _categoryPersister?.Dispose();
@@ -57,7 +57,7 @@ namespace Application.Api.IntegrationTests
                 c.Description = i.ToString();
             });
 
-            var response = await _client.GetAsync("/api/category?&orderby=Name desc");
+            var response = await _client.GetAsync("/api/category?$orderby=Name desc");
             Assert.That.IsOkHttpResponse(response);
             var categories = response.To<List<Category>>();
             for (var i = 0; i < expectedCategories - 1; i++)
@@ -78,7 +78,7 @@ namespace Application.Api.IntegrationTests
                 c.Description = i.ToString();
             });
 
-            var response = await _client.GetAsync("/api/category?&orderby=Name");
+            var response = await _client.GetAsync("/api/category?$orderby=Name");
             Assert.That.IsOkHttpResponse(response);
             var categories = response.To<List<Category>>();
             for (var i = 0; i < expectedCategories - 1; i++)
@@ -103,18 +103,18 @@ namespace Application.Api.IntegrationTests
             Assert.That.All(categories.To<List<Category>>()).HaveCount(10);
         }
 
-        //[TestMethod]
-        //public async Task GET_return_all_categories_limiting_to_the_first_100()
-        //{
-        //    const int MaxPageItemNumber = 100;
-        //    const int NumberOfCatetoriesToCreate = 110;
+        [TestMethod]
+        public async Task GET_return_all_categories_limiting_to_the_first_100()
+        {
+            const int MaxPageItemNumber = 100;
+            const int NumberOfCatetoriesToCreate = 110;
 
-        //    _categoryPersister.Persist(NumberOfCatetoriesToCreate);
+            _categoryPersister.Persist(NumberOfCatetoriesToCreate);
 
-        //    var categories = await _client.GetAsync("/api/category");
+            var categories = await _client.GetAsync("/api/category");
 
-        //    Assert.That.All(categories.To<List<Category>>()).HaveCount(MaxPageItemNumber);
-        //}
+            Assert.That.All(categories.To<List<Category>>()).HaveCount(MaxPageItemNumber);
+        }
 
         [TestMethod]
         public async Task GET_support_orderBy_Id()
@@ -122,8 +122,8 @@ namespace Application.Api.IntegrationTests
             _categoryPersister.Persist(3, (c, i) =>
             {
                 c.Active = 1 % 2 == 0;
-                c.Name = (10 - i).ToString();
-                c.Description = i.ToString();
+                c.Name = $"Name_{i}";
+                c.Description = $"Desc_i";
             });
 
             var response = await _client.GetAsync("/api/category?&orderby=Id");
