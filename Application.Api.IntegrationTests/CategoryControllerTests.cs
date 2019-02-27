@@ -6,43 +6,27 @@ using Data.Entity;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Data.Context;
-using Microsoft.EntityFrameworkCore.Storage;
 using System.Linq;
-using Common.IoC;
-using Microsoft.EntityFrameworkCore;
-using System.Data;
 
 namespace Application.Api.IntegrationTests
 {
-    /// <summary>
-    /// TODO Current problem to fix, the SQLite database is not wiped at the end of each test
-    /// </summary>
     [TestClass]
-    public class CategoryControllerTests
+    public class CategoryControllerTests : BaseApiIntegrationTests
     {
-        private TestServerApiClient _client;
         private Persister<Category> _categoryPersister;
         private Builder<Category> _categoryBuilder;
-        private IHouseKeeperContext _context;
 
         [TestInitialize]
         public void TestInitialize()
-        {            
-            _context = ContextProvider.GetContext();
-            _client = new TestServerApiClient();
-            ContextProvider.ResetDatabase();
+        {       
             _categoryPersister = new Persister<Category>(_context);
             _categoryBuilder = new Builder<Category>();
         }
 
         [TestCleanup]
-        public void Cleanup()
+        public void TestCleanup()
         {            
-            _client?.Dispose();
-            _context?.Dispose();
-            _categoryPersister?.Dispose();
-            ContextProvider.Dispose();            
+            _categoryPersister?.Dispose();        
         }
 
         #region GET
@@ -106,7 +90,6 @@ namespace Application.Api.IntegrationTests
         [TestMethod]
         public async Task GET_return_all_categories_limiting_to_the_first_100()
         {
-            const int MaxPageItemNumber = 100;
             const int NumberOfCatetoriesToCreate = 110;
 
             _categoryPersister.Persist(NumberOfCatetoriesToCreate);
@@ -117,26 +100,29 @@ namespace Application.Api.IntegrationTests
         }
 
         [TestMethod]
-        public async Task GET_support_orderBy_Id()
+        public async Task GET_support_orderBy_Id_ascending()
         {
-            _categoryPersister.Persist(3, (c, i) =>
-            {
-                c.Active = 1 % 2 == 0;
-                c.Name = $"Name_{i}";
-                c.Description = $"Desc_i";
-            });
+            const int NumberOfTransactionsToCreate = 3;
+            _categoryPersister.Persist(NumberOfTransactionsToCreate);
 
             var response = await _client.GetAsync("/api/category?&orderby=Id");
             var categories = response.To<List<Category>>();
 
-            Assert.That.All(categories).HaveCount(3);
+            Assert.That.All(categories).HaveCount(NumberOfTransactionsToCreate);
             Assert.IsTrue(categories[0].Id < categories[1].Id &&
                           categories[1].Id < categories[2].Id);
+        }
 
-            response = await _client.GetAsync("/api/category?$orderby=Id desc");
-            categories = response.To<List<Category>>();
+        [TestMethod]
+        public async Task GET_support_orderBy_Id_descending()
+        {
+            const int NumberOfTransactionsToCreate = 3;
+            _categoryPersister.Persist(NumberOfTransactionsToCreate);
 
-            Assert.That.All(categories).HaveCount(3);
+            var response = await _client.GetAsync("/api/category?$orderby=Id desc");
+            var categories = response.To<List<Category>>();
+
+            Assert.That.All(categories).HaveCount(NumberOfTransactionsToCreate);
             Assert.IsTrue(categories[0].Id > categories[1].Id &&
                           categories[1].Id > categories[2].Id);
         }
@@ -146,7 +132,6 @@ namespace Application.Api.IntegrationTests
         [TestMethod]
         public async Task GET_byId_returns_404_when_id_does_not_exist()
         {
-            var x = _client.GetContentAsync<Category>("/api/category/1").Result;
             var response = await _client.GetAsync("/api/category/1");
             Assert.That.IsNotFoundHttpResponse(response);
         }

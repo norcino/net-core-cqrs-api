@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Common.IntegrationTests;
 using Common.Tests.FluentAssertion;
+using Data.Common.Testing.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Service.Transaction.Command;
@@ -15,16 +16,8 @@ namespace Service.Transaction.IntegrationTests
         [TestMethod]
         public async Task Handler_creates_new_transaction_with_the_correct_properties()
         {
-            var category = new Data.Entity.Category
-            {
-                Active = true,
-                Name = "Test category",
-                Description = "Description category"
-            };
-
-            await Context.Categories.AddAsync(category);
-            await Context.SaveChangesAsync();
-
+            var category = Persister<Data.Entity.Category>.New().Persist();
+                        
             var transaction = new Data.Entity.Transaction
             {
                 CategoryId = category.Id,

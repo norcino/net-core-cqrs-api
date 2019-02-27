@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Common.IntegrationTests;
 using Common.Tests.FluentAssertion;
+using Data.Common.Testing.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Service.Transaction.Command;
@@ -14,53 +15,27 @@ namespace Service.Transaction.IntegrationTests
         [TestMethod]
         public async Task Handler_update_transaction_with_the_correct_properties()
         {
-            var category = new Data.Entity.Category
+            var category = Persister<Data.Entity.Category>.New().Persist();            
+            var categoryTwo = Persister<Data.Entity.Category>.New().Persist();
+            var transaction = Persister<Data.Entity.Transaction>.New().Persist(t =>
             {
-                Active = true,
-                Name = "Test category",
-                Description = "Description category"
-            };
-            
-            var categoryTwo = new Data.Entity.Category
-            {
-                Active = true,
-                Name = "Test category 2",
-                Description = "Description category 2"
-            };
+                t.CategoryId = category.Id;
+            });
 
-            await Context.Categories.AddAsync(category);
-            await Context.Categories.AddAsync(categoryTwo);
-            await Context.SaveChangesAsync();
+            transaction.CategoryId = categoryTwo.Id;
+            transaction.Debit += 100;
+            transaction.Credit -= 100;
+            transaction.Description = transaction.Description + "2";
+            transaction.Recorded = transaction.Recorded.AddDays(10);
 
-            var transaction = new Data.Entity.Transaction
-            {
-                CategoryId = category.Id,
-                Debit = 100,
-                Description = "Test transaction",
-                Recorded = DateTime.Now
-            };
-
-            await Context.Transactions.AddAsync(transaction);
-            await Context.SaveChangesAsync();
-
-            var updateTransaction = new Data.Entity.Transaction
-            {
-                Id = transaction.Id,
-                CategoryId = categoryTwo.Id,
-                Debit = 0,
-                Credit = 100,
-                Description = transaction.Description + "2",
-                Recorded = DateTime.Now
-            };
-
-            var command = new UpdateTransactionCommand(transaction.Id, updateTransaction);
+            var command = new UpdateTransactionCommand(transaction.Id, transaction);
             var response = await ServiceManager.ProcessCommandAsync<Data.Entity.Transaction>(command);
 
             Assert.IsTrue(response.Successful, "The command response is successful");
 
-            var savedUpdatedTransaction = await Context.Transactions.AsNoTracking().SingleAsync(p => p.Id == response.Result.Id);
+            var updateTransaction = await Context.Transactions.AsNoTracking().SingleAsync(p => p.Id == response.Result.Id);
 
-            Assert.That.This(savedUpdatedTransaction).HasSameProperties(updateTransaction);
+            Assert.That.This(updateTransaction).HasSameProperties(transaction);
         }
     }
 }

@@ -1,8 +1,10 @@
 ﻿using Common.Log;
 using Service.Common;
+using Service.Common.CommandAttributes;
 
 namespace Service.Transaction.Command
 {
+    [ValidateCommand]
     public class CreateTransactionCommand : ICommand
     {
         public Data.Entity.Transaction Transaction { get; set; }

@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Data.Entity;
 using Microsoft.AspNet.OData.Query;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Service.Common;
 using Service.Transaction.Command;
@@ -42,7 +43,13 @@ namespace Application.Api.Controllers
         public async Task<ActionResult> PostAsync([FromBody] Transaction transaction)
         {
             var result = await _serviceManager.ProcessCommandAsync<int>(new CreateTransactionCommand(transaction));
-            return new CreatedAtRouteResult("GetTransactionById", new { Id = result.Result }, result);
+
+            if (result.Successful)
+            {
+                return new CreatedAtRouteResult("GetTransactionById", new { Id = result.Result }, result);
+            }
+
+            return StatusCode(StatusCodes.Status400BadRequest, result);
         }
 
         [HttpPut("{id}")]

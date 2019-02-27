@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Common.IntegrationTests;
 using Common.Tests.FluentAssertion;
+using Data.Common.Testing.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Service.Category.Command;
@@ -13,32 +14,20 @@ namespace Service.Category.IntegrationTests
         [TestMethod]
         public async Task Handler_update_new_category_with_the_correct_properties()
         {
-            var category = new Data.Entity.Category
-            {
-                Name = "Test category",
-                Description = "Test description",
-                Active = true
-            };
+            var category = Persister<Data.Entity.Category>.New().Persist();
 
-            await Context.Categories.AddAsync(category);
-            await Context.SaveChangesAsync();
+            category.Active = !category.Active;
+            category.Name = category.Name + "2";
+            category.Description = category.Description + "2";
 
-            var updateCategory = new Data.Entity.Category
-            {
-                Id = category.Id,
-                Active = !category.Active,
-                Name = category.Name + "2",
-                Description = category.Description + "2"
-            };
-
-            var command = new UpdateCategoryCommand(category.Id, updateCategory);
+            var command = new UpdateCategoryCommand(category.Id, category);
             var response = await ServiceManager.ProcessCommandAsync<Data.Entity.Category>(command);
 
             Assert.IsTrue(response.Successful, "The command response is successful");
 
-            var createdCategory = await Context.Categories.SingleAsync(p => p.Id == response.Result.Id);
+            var updatedCategory = await Context.Categories.SingleAsync(p => p.Id == response.Result.Id);
 
-            Assert.That.This(createdCategory).HasSameProperties(category);
+            Assert.That.This(updatedCategory).HasSameProperties(category);
         }
     }
 }

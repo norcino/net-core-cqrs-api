@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Threading.Tasks;
 using Common.IntegrationTests;
 using Common.Tests.FluentAssertion;
+using Data.Common.Testing.Builder;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Service.Transaction.Query;
 
@@ -14,26 +15,10 @@ namespace Service.Transaction.IntegrationTests
         [TestMethod]
         public async Task Handler_get_transaction_by_id_with_the_correct_properties()
         {
-            var category = new Data.Entity.Category
-            {
-                Name = DateTime.Now.ToString(CultureInfo.InvariantCulture),
-                Description = "Test description",
-                Active = true
-            };
-
-            await Context.Categories.AddAsync(category);
-            await Context.SaveChangesAsync();
-
-            var transaction = new Data.Entity.Transaction
-            {
-                Description = DateTime.Now.ToString(CultureInfo.InvariantCulture),
-                Recorded = DateTime.Now,
-                CategoryId = category.Id
-            };
-
-            await Context.Transactions.AddAsync(transaction);
-            await Context.SaveChangesAsync();
-
+            var category = Persister<Data.Entity.Category>.New().Persist();
+            var transaction = Persister<Data.Entity.Transaction>.New()
+                .Persist(t => t.CategoryId = category.Id);
+                        
             var query = new GetTransactionByIdQuery(transaction.Id);
             var dbTransaction = await ServiceManager.ProcessQueryAsync(query);
 

@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Linq.Expressions;
 
 namespace Common.Tests.FluentAssertion
 {
@@ -62,14 +63,20 @@ namespace Common.Tests.FluentAssertion
         {
             return assertObject;
         }
-        public static AssertObject<T> HasValue<T>(this AssertObject<T> assertObject, object value)
+        public static AssertObject<T> HasValue<T>(this AssertObject<T> assertObject, object value, string message = null)
         {
-            Assert.AreEqual(assertObject.Object, value);
+            Assert.AreEqual(assertObject.Object, value, message);
             return assertObject;
         }
-        public static AssertObject<T> IsNotNull<T>(this AssertObject<T> assertObject)
+        public static AssertObject<T> IsNotNull<T>(this AssertObject<T> assertObject, string message = null)
         {
-            Assert.IsNotNull(assertObject.Object, "The object is null");
+            Assert.IsNotNull(assertObject.Object, message ?? "The object is null");
+            return assertObject;
+        }
+
+        public static AssertObject<T> IsTrue<T>(this AssertObject<T> assertObject, string message = null)
+        {
+            Assert.IsNotNull(assertObject.Object, message ?? "The object is null");
             return assertObject;
         }
         #endregion
@@ -81,13 +88,13 @@ namespace Common.Tests.FluentAssertion
         /// <typeparam name="T">Type of the object</typeparam>
         /// <typeparam name="O">Expected Object type to verify</typeparam>
         /// <param name="assertObject">Assert object</param>
-        public static void IsOfType<T,O>(this AssertObject<O> assertObject)
+        public static void IsOfType<T,O>(this AssertObject<O> assertObject, string message = null)
         {
             if (assertObject.Object is T)
             {
                 return;
             }
-            throw new AssertFailedException($"Expected type {typeof(T)} but was {assertObject.GetType()}");
+            throw new AssertFailedException(message ?? $"Expected type {typeof(T)} but was {assertObject.GetType()}");
         }
         #endregion
 
@@ -98,7 +105,7 @@ namespace Common.Tests.FluentAssertion
         /// <param name="assertObject">Assert object</param>
         /// <param name="comparedObject">Object to be compared with</param>
         /// <param name="exclusions">String array with the list of properties to not compare</param>
-        public static void HasSameProperties<T>(this AssertObject<T> assertObject, object comparedObject, params string[] exclusions)
+        public static AssertObject<T> HasSameProperties<T>(this AssertObject<T> assertObject, object comparedObject, params string[] exclusions)
         {
             Assert.IsNotNull(assertObject.Object);
             Assert.IsNotNull(comparedObject);
@@ -106,7 +113,7 @@ namespace Common.Tests.FluentAssertion
             foreach (var propertyInfo in assertObject.Object.GetType().GetProperties())
             {
                 // Exclude properties
-                if (exclusions != null && ((IList) exclusions).Contains(propertyInfo.Name)) continue;
+                if (exclusions != null && ((IList)exclusions).Contains(propertyInfo.Name)) continue;
 
                 // Ignore Objects and Collections
                 if (propertyInfo.PropertyType.GetTypeInfo().IsValueType || propertyInfo.PropertyType == typeof(string))
@@ -116,7 +123,7 @@ namespace Common.Tests.FluentAssertion
 
                     if (objectValue is DateTime)
                     {
-                        TimeSpan difference = (DateTime) objectValue - (DateTime) comparedObjectValue;
+                        TimeSpan difference = (DateTime)objectValue - (DateTime)comparedObjectValue;
                         Assert.IsTrue(difference < TimeSpan.FromSeconds(1),
                             $"Property '{propertyInfo.Name}' of type DateTime has value {objectValue} but was expected {comparedObjectValue}");
                         continue;
@@ -125,6 +132,25 @@ namespace Common.Tests.FluentAssertion
                     Assert.AreEqual(objectValue, comparedObjectValue, $"Property '{propertyInfo.Name}' of type {assertObject.Object.GetType()} has value {objectValue} but was expected {comparedObjectValue}");
                 }
             }
+            return assertObject;
+        }
+
+        public static SamePropertyObject<T> Except<T>(this SamePropertyObject<T> assertObject, Expression<Func<T, object>> excludedProperty)
+        {
+            assertObject.Exclusions.Add(excludedProperty);
+            return assertObject;
+        }
+
+        public static SamePropertyObject<T> Except<T>(this AssertObject<T> assertObject, Expression<Func<T, object>> excludedProperty)
+        {
+            var assertSamePropertyObject = new SamePropertyObject<T>(assertObject.Object);
+            assertSamePropertyObject.Exclusions.Add(excludedProperty);
+            return assertSamePropertyObject;
+        }
+        public static AssertObject<T> HasSameProperties<T>(this SamePropertyObject<T> assertObject, T comparedObject)
+        {
+            assertObject.ExpectedObject = comparedObject;
+            return new AssertObject<T>(assertObject.ComparedObject);
         }
         #endregion
 
@@ -204,4 +230,26 @@ namespace Common.Tests.FluentAssertion
             Collection =  new ReadOnlyCollection<T>(collection.ToList());
         }
     }
+
+    public class SamePropertyObject<T>
+    {
+        public readonly T ComparedObject;
+        public T ExpectedObject;
+        public List<Expression<Func<T, object>>> Exclusions;
+
+        public SamePropertyObject(T subject)
+        {
+            ComparedObject = subject;
+            Exclusions = new List<Expression<Func<T, object>>>();
+        }
+    }    
 }
+
+/*
+ *  TO COMPLETE
+ * Assert.That.This(object)
+ * .Except(x.property)
+ * .Except(x.property2)
+ * .Including(x.property3)
+ * .HasSameProperties) 
+ */

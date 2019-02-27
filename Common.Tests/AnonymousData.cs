@@ -92,7 +92,7 @@ namespace Common.Tests
         /// <returns>Double value</returns>
         public static double Double()
         {
-            return GetThreadRandom().NextDouble();
+            return GetThreadRandom().NextDouble() * 100000d;
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace Common.Tests
         /// <returns>Decimal value</returns>
         public static decimal Decimal()
         {
-            return (decimal)GetThreadRandom().NextDouble();
+            return (decimal)GetThreadRandom().NextDouble() * 100000M;
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace Common.Tests
         /// <returns>Float value</returns>
         public static float Float()
         {
-            return (float) GetThreadRandom().NextDouble();
+            return (float) GetThreadRandom().NextDouble() * 100000f;
         }
 
         public static TimeSpan TimeSpan()

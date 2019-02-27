@@ -21,6 +21,8 @@ using Service.Common.CommandHandlerDecorators;
 using Service.Common.QueryHandlerDecorators;
 using Microsoft.Extensions.Configuration;
 using System.Configuration;
+using Service.Transaction.Command;
+using Service.Transaction.Validator;
 
 namespace Common.IoC
 {
@@ -112,7 +114,12 @@ namespace Common.IoC
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
 
+            // TODO: Make depenendcy injection setup automatic for validators
+
             services.AddTransient(typeof(ICommandValidator<CreateCategoryCommand>), typeof(CreateCategoryCommandValidator));
+            services.AddTransient(typeof(ICommandValidator<CreateTransactionCommand>), typeof(CreateTransactionCommandValidator));
+                        
+            services.AddTransient<IValidator<Transaction>>(validator => new TransactionValidator());
             services.AddTransient<IValidator<Category>>(validator => new CategoryValidator());
         }
 
