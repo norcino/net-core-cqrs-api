@@ -16,7 +16,11 @@ The dependency injection is responsible to decorate each handler with the desire
 ### Standardized ordering, filtering, pagination and expansion
 This framework allow to query each entity using the OData syntax. The supported operations are:
 - Filter: Allow to filter entities using property values, with operations like equal (eq), ... (TODO complete the list of available filters)
+
+e.g. [https://host/api/entity?$filter=Property eq 'property string value']()
 - Order by: Allow to order the data by properties, in ascending or descending order
+
+e.g. [https://host/api/entity?$orderBy=Property DESC]()
 - Skip: Allow to skip a certain amount of results from the query, useful to create custom pagination
 - Top: Allow to limit the results to a certain amount of entities returned, useful to create custom pagination
 - Count: Allow to add the count information to the query result
