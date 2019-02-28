@@ -1,4 +1,4 @@
-﻿namespace Service.Common.QueryTreats
+﻿namespace Service.Common.QueryTraits
 {
     public interface ICanSkip
     {

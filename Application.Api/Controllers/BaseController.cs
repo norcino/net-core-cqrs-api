@@ -5,7 +5,7 @@ using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OData.Edm;
 using Microsoft.OData.UriParser;
-using Service.Common.QueryTreats;
+using Service.Common.QueryTraits;
 
 namespace Application.Api.Controllers
 {

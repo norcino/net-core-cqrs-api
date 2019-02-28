@@ -29,9 +29,71 @@ namespace Application.Api.IntegrationTests
             _categoryPersister?.Dispose();        
         }
 
-        #region GET
+        #region Get Skip - Category?$skip={#}
         [TestMethod]
-        public async Task GET_support_orderBy_Name_descending()
+        public async Task GET_using_Skip_Should_omit_top_undesired_entities()
+        {
+            const int entitiesToCreate = MaxPageItemNumber * 2;
+            const int numberOfResultsToSkip = 10;
+
+            _categoryPersister.Persist(entitiesToCreate);
+
+            var response = await _client.GetAsync($"/api/category?$skip={numberOfResultsToSkip}&$orderby=Id");
+            Assert.That.IsOkHttpResponse(response);
+            var categories = response.To<List<Category>>();
+            Assert.That
+                .These(categories)
+                .HaveCount(100)
+                .And()
+                .Are(c => c.Id >= 11 && c.Id <= numberOfResultsToSkip + MaxPageItemNumber)
+                .And()
+                .Contains(c => c.Id == 11)
+                .And()
+                .Contains(c => c.Id == 110);                
+        }
+
+        [TestMethod]
+        public async Task GET_using_Skip_with_value_greater_then_Count_Should_return_empty_list()
+        {
+            const int entitiesToCreate = 10;
+            const int numberOfResultsToSkip = 10;
+
+            _categoryPersister.Persist(entitiesToCreate);
+
+            var response = await _client.GetAsync($"/api/category?$skip={numberOfResultsToSkip}&$orderby=Id");
+            Assert.That.IsOkHttpResponse(response);
+            var categories = response.To<List<Category>>();
+            Assert.That.These(categories).HaveCount(0);
+        }
+        #endregion
+
+        #region Get Top - Category?$top={#}
+        [TestMethod]
+        public async Task GET_using_Top_with_value_greater_then_MaximumNumberOfResults_Should_return_MaximumNumberOfResults()
+        {      
+            const int entitiesToCreate = MaxPageItemNumber * 2;
+            const int numberOfDesiredResults = MaxPageItemNumber * 2;
+            _categoryPersister.Persist(entitiesToCreate);
+
+            var response = await _client.GetAsync($"/api/category?$top={numberOfDesiredResults}");
+            Assert.That.IsOkHttpResponse(response);
+            var categories = response.To<List<Category>>();
+            Assert.That.These(categories).HaveCount(MaxPageItemNumber); 
+        }
+
+        [TestMethod]
+        public async Task GET_using_Top_with_no_results_empty_list()
+        {
+            var response = await _client.GetAsync($"/api/category?$top=1");
+            Assert.That.IsOkHttpResponse(response);
+            var categories = response.To<List<Category>>();
+            Assert.That.These(categories).HaveCount(0);
+        }
+        #endregion
+
+        #region Get Filter by Name - Category?$filter=Name
+        [TestMethod]
+        public async Task GET_support_OrderBy_Name_descending()
         {
             const int expectedCategories = 5;
             _categoryPersister.Persist(expectedCategories, (c, i) =>
@@ -52,7 +114,7 @@ namespace Application.Api.IntegrationTests
         }
 
         [TestMethod]
-        public async Task GET_support_orderBy_Name_ascending()
+        public async Task GET_support_OrderBy_Name_ascending()
         {
             const int expectedCategories = 5;
             _categoryPersister.Persist(expectedCategories, (c, i) =>
@@ -71,7 +133,39 @@ namespace Application.Api.IntegrationTests
                 Assert.IsTrue(int.Parse(categories[i].Name) < int.Parse(categories[i + 1].Name));
             }
         }
+        #endregion
 
+        #region Get Filter by Id - Category?$filter=Id
+        [TestMethod]
+        public async Task GET_support_OrderBy_Id_ascending()
+        {
+            const int NumberOfTransactionsToCreate = 3;
+            _categoryPersister.Persist(NumberOfTransactionsToCreate);
+
+            var response = await _client.GetAsync("/api/category?&orderby=Id");
+            var categories = response.To<List<Category>>();
+
+            Assert.That.All(categories).HaveCount(NumberOfTransactionsToCreate);
+            Assert.IsTrue(categories[0].Id < categories[1].Id &&
+                          categories[1].Id < categories[2].Id);
+        }
+
+        [TestMethod]
+        public async Task GET_support_OrderBy_Id_descending()
+        {
+            const int NumberOfTransactionsToCreate = 3;
+            _categoryPersister.Persist(NumberOfTransactionsToCreate);
+
+            var response = await _client.GetAsync("/api/category?$orderby=Id desc");
+            var categories = response.To<List<Category>>();
+
+            Assert.That.All(categories).HaveCount(NumberOfTransactionsToCreate);
+            Assert.IsTrue(categories[0].Id > categories[1].Id &&
+                          categories[1].Id > categories[2].Id);
+        }
+        #endregion
+
+        #region Get All - Category
         [TestMethod]
         public async Task GET_return_all_categories()
         {
@@ -98,37 +192,9 @@ namespace Application.Api.IntegrationTests
 
             Assert.That.All(categories.To<List<Category>>()).HaveCount(MaxPageItemNumber);
         }
-
-        [TestMethod]
-        public async Task GET_support_orderBy_Id_ascending()
-        {
-            const int NumberOfTransactionsToCreate = 3;
-            _categoryPersister.Persist(NumberOfTransactionsToCreate);
-
-            var response = await _client.GetAsync("/api/category?&orderby=Id");
-            var categories = response.To<List<Category>>();
-
-            Assert.That.All(categories).HaveCount(NumberOfTransactionsToCreate);
-            Assert.IsTrue(categories[0].Id < categories[1].Id &&
-                          categories[1].Id < categories[2].Id);
-        }
-
-        [TestMethod]
-        public async Task GET_support_orderBy_Id_descending()
-        {
-            const int NumberOfTransactionsToCreate = 3;
-            _categoryPersister.Persist(NumberOfTransactionsToCreate);
-
-            var response = await _client.GetAsync("/api/category?$orderby=Id desc");
-            var categories = response.To<List<Category>>();
-
-            Assert.That.All(categories).HaveCount(NumberOfTransactionsToCreate);
-            Assert.IsTrue(categories[0].Id > categories[1].Id &&
-                          categories[1].Id > categories[2].Id);
-        }
         #endregion
 
-        #region GET by ID
+        #region Get by ID Category/{id}
         [TestMethod]
         public async Task GET_byId_returns_404_when_id_does_not_exist()
         {
@@ -155,7 +221,7 @@ namespace Application.Api.IntegrationTests
         }
         #endregion
 
-        #region POST
+        #region POST - Category
         [TestMethod]
         public async Task POST_returns_201_passing_valid_entity()
         {
