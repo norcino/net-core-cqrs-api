@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using Common.Log;
 using Service.Common;
-using Service.Common.QueryTreats;
+using Service.Common.QueryTraits;
 
 namespace Service.Category.Query
 {
-    public class GetCategoriesQuery : IQuery<List<Data.Entity.Category>>, ICanTop, ICanSkip, ICanExpand, ICanOrderBy, ICanFilter<Data.Entity.Category>
+    public class GetCategoriesQuery : IQuery<List<Data.Entity.Category>>, ICanCount, ICanTop, ICanSkip, ICanExpand, ICanOrderBy, ICanFilter<Data.Entity.Category>
     {
         public LogInfo ToLog()
         {

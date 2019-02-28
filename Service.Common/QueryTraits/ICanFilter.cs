@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-namespace Service.Common.QueryTreats
+namespace Service.Common.QueryTraits
 {
     public interface ICanFilter<T>
     {
