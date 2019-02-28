@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using Service.Common.QueryTreats;
+using Service.Common.QueryTraits;
 using System.Linq.Dynamic.Core;
 using Microsoft.EntityFrameworkCore;
 

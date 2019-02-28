@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using Common.Log;
 using Service.Common;
-using Service.Common.QueryTreats;
+using Service.Common.QueryTraits;
 
 namespace Service.Transaction.Query
 {

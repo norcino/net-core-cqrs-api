@@ -174,14 +174,35 @@ namespace Common.Tests.FluentAssertion
         /// <typeparam name="T">Generic type for the collection</typeparam>
         /// <param name="assertCollection"></param>
         /// <param name="assertions">Function which must return true to succeed validation</param>
-        public static void Are<T>(this AssertCollection<T> assertCollection, Func<T, bool> assertions)
+        /// /// <returns></returns>
+        public static AssertCollection<T> Are<T>(this AssertCollection<T> assertCollection, Func<T, bool> assertions)
         {
-            Assert.IsTrue(assertCollection.Collection.Any(assertions));
+            Assert.IsTrue(assertCollection.Collection.All(assertions));
+            return assertCollection;
         }
 
-        public static void HaveCount<T>(this AssertCollection<T> assertCollection, int expectedCount) {
+        /// <summary>
+        /// Make sure that at least one element of a collection matches the specified criteria in the function
+        /// </summary>
+        /// <typeparam name="T">Generic type for the collection</typeparam>
+        /// <param name="assertCollection"></param>
+        /// <param name="assertions">Function which must return true to succeed validation</param>
+        /// <returns></returns>
+        public static AssertCollection<T> Contains<T>(this AssertCollection<T> assertCollection, Func<T, bool> assertions)
+        {
+            Assert.IsTrue(assertCollection.Collection.Any(assertions));
+            return assertCollection;
+        }        
+
+        public static AssertCollection<T> Have<T>(this AssertCollection<T> assertCollection, Func<T, bool> assertions)
+        {
+            return Are(assertCollection, assertions);
+        }
+
+        public static AssertCollection<T> HaveCount<T>(this AssertCollection<T> assertCollection, int expectedCount) {
             if (expectedCount != assertCollection.Collection.Count)
                 throw new AssertFailedException($"Expected {expectedCount} elements, but the collection had {assertCollection.Collection.Count}");
+            return assertCollection;
         }
 
         public static AssertCollection<T> All<T>(this Assert assert, ICollection<T> collection)
@@ -194,9 +215,9 @@ namespace Common.Tests.FluentAssertion
             return assertCollection;
         }
 
-        public static AssertCollection<T> These<T>(this AssertCollection<T> assertCollection)
+        public static AssertCollection<T> These<T>(this Assert assert, ICollection<T> collection)
         {
-            return assertCollection;
+            return new AssertCollection<T>(collection);
         }
         #endregion
     }
