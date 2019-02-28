@@ -14,17 +14,44 @@ The decorator pattern, allow to easily add cross concern aspects, such logging, 
 The dependency injection is responsible to decorate each handler with the desired decorators, before returning the requested instance.
 
 ### Standardized ordering, filtering, pagination and expansion
-This framework allow to query each entity using the OData syntax. The supported operations are:
-- Filter: Allow to filter entities using property values, with operations like equal (eq), ... (TODO complete the list of available filters)
+This framework allow to query each entity using the OData syntax. The supported operations are listed below.
+
+**Filter**
+
+Allow to filter entities using property values, with operations like equal (eq), ... (TODO complete the list of available filters)
 
 e.g. [https://host/api/entity?$filter=Property eq 'property string value']()
-- Order by: Allow to order the data by properties, in ascending or descending order
+
+Operation | Command | Notes
+---------|----------|---------
+ Equal | eq | 
+ Greater then | gt | 
+ Lesser than | lt | 
+
+**Order**
+
+Allow to order the data by properties, in ascending or descending order
 
 e.g. [https://host/api/entity?$orderBy=Property DESC]()
-- Skip: Allow to skip a certain amount of results from the query, useful to create custom pagination
-- Top: Allow to limit the results to a certain amount of entities returned, useful to create custom pagination
-- Count: Allow to add the count information to the query result
-- Expand: Allow to request additional relational data to be returned along with the entity/s requested
+
+**Skip**
+
+Allow to skip a certain amount of results from the query, useful to create custom pagination
+
+**Top**
+
+Allow to limit the results to a certain amount of entities returned, useful to create custom pagination
+
+**Count**
+
+Allow to add the count information to the query result
+
+e.g. [https://host/api/entity/$count]() or 
+[https://host/api/entity?$filter=Property eq 'property string value'/$count]()
+
+**Expansion**
+
+Allow to request additional relational data to be returned along with the entity/s requested
 
 ### Unit Testing made readable and easy to setup
 Through the use of builders, the developer can setup the preconditions before running tests, in such way that highlight what are the relevant data, properties and entities, leaving to the Builders, the responsibility to generate default data, just to preserve data integrity.
