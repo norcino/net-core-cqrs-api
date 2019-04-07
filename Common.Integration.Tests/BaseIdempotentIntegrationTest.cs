@@ -36,7 +36,7 @@ namespace Common.IntegrationTests
             serviceCollection.AddSingleton<IConfiguration>(configuration);
 
             IocConfig.RegisterContext(serviceCollection, null);
-            IocConfig.RegisterServiceManager(serviceCollection);
+            IocConfig.Registermediator(serviceCollection);
             IocConfig.RegisterValidators(serviceCollection);
             IocConfig.RegisterQueryHandlers(serviceCollection);
             IocConfig.RegisterCommandHandlers(serviceCollection);

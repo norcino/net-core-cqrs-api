@@ -18,7 +18,7 @@ namespace Service.Transaction.IntegrationTests
             var transaction = Persister<Data.Entity.Transaction>.New().Persist();
                         
             var query = new GetTransactionByIdQuery(transaction.Id);
-            var dbTransaction = await ServiceManager.ProcessQueryAsync(query);
+            var dbTransaction = await mediator.ProcessQueryAsync(query);
 
             Assert.IsNotNull(dbTransaction);
             Assert.That.This(dbTransaction).HasSameProperties(transaction);

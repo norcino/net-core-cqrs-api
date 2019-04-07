@@ -123,12 +123,12 @@ namespace Common.IoC
             services.AddTransient<IValidator<Category>>(validator => new CategoryValidator());
         }
 
-        public static void RegisterServiceManager(IServiceCollection services)
+        public static void Registermediator(IServiceCollection services)
         {
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
 
-            services.AddSingleton<IServiceManager>(service => new ServiceManager(service));
+            services.AddSingleton<IMediator>(service => new Mediator(service));
         }
 
         /// <summary>
