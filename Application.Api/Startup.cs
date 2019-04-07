@@ -70,16 +70,16 @@ namespace Application.Api
             // Entity Framework context registration
             IocConfig.RegisterContext(services, HostingEnvironment);
             
-            // Register service manager
-            IocConfig.Registermediator(services);
+            // Register Mediators
+            IocConfig.RegisterMediator(services);
 
-            // Register the validators
+            // Register the Validators
             IocConfig.RegisterValidators(services);
 
-            // Register all the query handlers with the related decoracors
+            // Register all the query handlers with the related decorators
             IocConfig.RegisterQueryHandlers(services);
 
-            // Register all the command handlers with the related decoracors
+            // Register all the command handlers with the related decorators
             IocConfig.RegisterCommandHandlers(services);
 
             // Add framework services.

@@ -21,9 +21,12 @@ using System.Configuration;
 
 namespace Common.IoC
 {
-    public class IocConfig
+    /// <summary>
+    /// Core Dependency Injection configuration class, contains methods necessary to setup the framework
+    /// </summary>
+    public static class IocConfig
     {
-        public static readonly LoggerFactory MyLoggerFactory = new LoggerFactory(new[] { new ConsoleLoggerProvider((_, __) => true, true) });
+        private static readonly LoggerFactory LoggerFactory = new LoggerFactory(new[] { new ConsoleLoggerProvider((_, __) => true, true) });
 
         public static void RegisterContext(IServiceCollection services, IHostingEnvironment hostingEnvironment)
         {
@@ -40,7 +43,8 @@ namespace Common.IoC
                 databaseType = configuration?.GetValue<DatabaseType>("DatabaseType") ?? DatabaseType.SQLServer;
             } catch
             {
-                MyLoggerFactory.CreateLogger<IocConfig>()?.LogWarning("Missing or invalid configuration: DatabaseType");
+                LoggerFactory.CreateLogger(typeof(IocConfig))?.
+                    LogWarning("Missing or invalid configuration: DatabaseType");
                 databaseType = DatabaseType.SQLServer;
             }
 
@@ -94,7 +98,7 @@ namespace Common.IoC
                     {
                         // Production setup using SQL Server
                         options.UseSqlServer(connectionString);
-                        options.UseLoggerFactory(MyLoggerFactory);
+                        options.UseLoggerFactory(LoggerFactory);
                     }, poolSize: 5);
 
                     services.AddTransient<IHouseKeeperContext>(service =>
@@ -104,37 +108,24 @@ namespace Common.IoC
             }
         }
 
+        /// <summary>
+        /// Register the Validator classes used to validate commands and entities
+        /// </summary>
+        /// <param name="services">Service container for the Dependency Injection</param>
         public static void RegisterValidators(IServiceCollection services)
         {
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
-
-            // Dynamically register all ICommandValidator implementations
-            foreach (var assembly in AssembliesWithHandlers)
-            {
-                var validatorTypes = GetGenericTypesImplementingInterfaceInAssembly(assembly, typeof(ICommandValidator<>));
-
-                foreach (var validatorType in validatorTypes)
-                {
-                    var interfaceType = GetGenericInterfacesInType(validatorType, typeof(ICommandValidator<>));
-                    services.Add(new ServiceDescriptor(interfaceType, validatorType, ServiceLifetime.Transient));
-                }
-            }
-
-            // Dynamically register all IValidator implementations
-            foreach (var assembly in AssembliesWithHandlers)
-            {
-                var validatorTypes = GetGenericTypesImplementingInterfaceInAssembly(assembly, typeof(IValidator<>));
-
-                foreach (var validatorType in validatorTypes)
-                {
-                    var interfaceType = GetGenericInterfacesInType(validatorType, typeof(IValidator<>));
-                    services.Add(new ServiceDescriptor(interfaceType, validatorType, ServiceLifetime.Transient));
-                }
-            }       
+                        
+            RegisterAllTypesInServiceAssembliesImplementingInterface(services, typeof(ICommandValidator<>));
+            RegisterAllTypesInServiceAssembliesImplementingInterface(services, typeof(IValidator<>));
         }
 
-        public static void Registermediator(IServiceCollection services)
+        /// <summary>
+        /// Register the Mediator class
+        /// </summary>
+        /// <param name="services">Service container for the Dependency Injection</param>
+        public static void RegisterMediator(IServiceCollection services)
         {
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
@@ -145,13 +136,13 @@ namespace Common.IoC
         /// <summary>
         /// Register the query handers and all the decorators
         /// </summary>
-        /// <param name="services">Service container for IoC</param>
+        /// <param name="services">Service container for the Dependency Injection</param>
         public static void RegisterQueryHandlers(IServiceCollection services)
         {
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
 
-            foreach (var assembly in AssembliesWithHandlers)
+            foreach (var assembly in ServiceAssemblies)
             {
                 var queryHandlers = GetGenericTypesImplementingInterfaceInAssembly(assembly, typeof(IQueryHandler<,>));
 
@@ -175,13 +166,13 @@ namespace Common.IoC
         /// <summary>
         /// Register the command handers and all the decorators
         /// </summary>
-        /// <param name="services">Service container for IoC</param>
+        /// <param name="services">Service container for the Dependency Injection</param>
         public static void RegisterCommandHandlers(IServiceCollection services)
         {
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
 
-            foreach (var assembly in AssembliesWithHandlers)
+            foreach (var assembly in ServiceAssemblies)
             {
                 var commandHandlers = GetGenericTypesImplementingInterfaceInAssembly(assembly, typeof(ICommandHandler<>));
 
@@ -203,6 +194,26 @@ namespace Common.IoC
             }
         }
 
+        #region Helper methods
+        /// <summary>
+        /// Scan all assemblies of the Service Layer, and registers all Types implementing the Generic Interfaces
+        /// </summary>
+        /// <param name="services">Service collection</param>
+        /// <param name="genericInterface">Generic interface</param>
+        private static void RegisterAllTypesInServiceAssembliesImplementingInterface(IServiceCollection services, Type genericInterface)
+        {
+            foreach (var assembly in ServiceAssemblies)
+            {
+                var validatorTypes = GetGenericTypesImplementingInterfaceInAssembly(assembly, genericInterface);
+
+                foreach (var validatorType in validatorTypes)
+                {
+                    var interfaceType = GetGenericInterfacesInType(validatorType, genericInterface);
+                    services.Add(new ServiceDescriptor(interfaceType, validatorType, ServiceLifetime.Transient));
+                }
+            }
+        }
+
         private static Type GetValidatorInterfaceType(Type interfaceType)
         {
             // Create the generic interface type that an hypothetical command validator would have, the validators are optional
@@ -212,7 +223,7 @@ namespace Common.IoC
         /// <summary>
         /// This method decorates handlers or decorators
         /// </summary>
-        /// <param name="services">Service container for IoC</param>
+        /// <param name="services">Service container for the Dependency Injection</param>
         /// <param name="interfaceType">Type of the ICommandHandler interface including the generic type</param>
         /// <param name="genericDecoratorType">Decorator type to use for the current decoration</param>
         /// <param name="requiredAttributeType">Optional attribute that if provided must be present in the command or query in order to enable the current decoration</param>
@@ -285,7 +296,7 @@ namespace Common.IoC
         /// <summary>
         /// Scan all assemblies matching the criteria used to locate Commands and Handlers
         /// </summary>
-        private static IEnumerable<Assembly> AssembliesWithHandlers
+        private static IEnumerable<Assembly> ServiceAssemblies
         {
             get
             {
@@ -299,4 +310,5 @@ namespace Common.IoC
             }
         }
     }
+    #endregion
 }
