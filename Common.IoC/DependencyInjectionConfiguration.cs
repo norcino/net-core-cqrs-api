@@ -24,7 +24,7 @@ namespace Common.IoC
     /// <summary>
     /// Core Dependency Injection configuration class, contains methods necessary to setup the framework
     /// </summary>
-    public static class IocConfig
+    public static class DependencyInjectionConfiguration
     {
         private static readonly LoggerFactory LoggerFactory = new LoggerFactory(new[] { new ConsoleLoggerProvider((_, __) => true, true) });
 
@@ -43,7 +43,7 @@ namespace Common.IoC
                 databaseType = configuration?.GetValue<DatabaseType>("DatabaseType") ?? DatabaseType.SQLServer;
             } catch
             {
-                LoggerFactory.CreateLogger(typeof(IocConfig))?.
+                LoggerFactory.CreateLogger(typeof(DependencyInjectionConfiguration))?.
                     LogWarning("Missing or invalid configuration: DatabaseType");
                 databaseType = DatabaseType.SQLServer;
             }
