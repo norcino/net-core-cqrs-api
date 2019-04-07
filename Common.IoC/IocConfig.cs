@@ -114,13 +114,29 @@ namespace Common.IoC
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
 
-            // TODO: Make depenendcy injection setup automatic for validators
+            // Dynamically register all ICommandValidator implementations
+            foreach (var assembly in AssembliesWithHandlers)
+            {
+                var validatorTypes = GetGenericTypesImplementingInterfaceInAssembly(assembly, typeof(ICommandValidator<>));
 
-            services.AddTransient(typeof(ICommandValidator<CreateCategoryCommand>), typeof(CreateCategoryCommandValidator));
-            services.AddTransient(typeof(ICommandValidator<CreateTransactionCommand>), typeof(CreateTransactionCommandValidator));
-                        
-            services.AddTransient<IValidator<Transaction>>(validator => new TransactionValidator());
-            services.AddTransient<IValidator<Category>>(validator => new CategoryValidator());
+                foreach (var validatorType in validatorTypes)
+                {
+                    var interfaceType = GetGenericInterfacesInType(validatorType, typeof(ICommandValidator<>));
+                    services.Add(new ServiceDescriptor(interfaceType, validatorType, ServiceLifetime.Transient));
+                }
+            }
+
+            // Dynamically register all IValidator implementations
+            foreach (var assembly in AssembliesWithHandlers)
+            {
+                var validatorTypes = GetGenericTypesImplementingInterfaceInAssembly(assembly, typeof(IValidator<>));
+
+                foreach (var validatorType in validatorTypes)
+                {
+                    var interfaceType = GetGenericInterfacesInType(validatorType, typeof(IValidator<>));
+                    services.Add(new ServiceDescriptor(interfaceType, validatorType, ServiceLifetime.Transient));
+                }
+            }       
         }
 
         public static void RegisterServiceManager(IServiceCollection services)
@@ -142,11 +158,11 @@ namespace Common.IoC
 
             foreach (var assembly in AssembliesWithHandlers)
             {
-                var queryHandlers = HandlersImplementingInterfaceInAssembly(assembly, typeof(IQueryHandler<,>));
+                var queryHandlers = GetGenericTypesImplementingInterfaceInAssembly(assembly, typeof(IQueryHandler<,>));
 
                 foreach (var handlerType in queryHandlers)
                 {
-                    var interfaceType = GetInterfaceInType(handlerType, typeof(IQueryHandler<,>));
+                    var interfaceType = GetGenericInterfacesInType(handlerType, typeof(IQueryHandler<,>));
 
                     // Register the handler by it's interface
                     services.Add(new ServiceDescriptor(interfaceType, handlerType, ServiceLifetime.Transient));
@@ -172,11 +188,11 @@ namespace Common.IoC
 
             foreach (var assembly in AssembliesWithHandlers)
             {
-                var commandHandlers = HandlersImplementingInterfaceInAssembly(assembly, typeof(ICommandHandler<>));
+                var commandHandlers = GetGenericTypesImplementingInterfaceInAssembly(assembly, typeof(ICommandHandler<>));
 
                 foreach (var handlerType in commandHandlers)
                 {
-                    var interfaceType = GetInterfaceInType(handlerType, typeof(ICommandHandler<>));
+                    var interfaceType = GetGenericInterfacesInType(handlerType, typeof(ICommandHandler<>));
 
                     // Register the handler by it's interface
                     services.Add(new ServiceDescriptor(interfaceType, handlerType, ServiceLifetime.Transient));
@@ -248,17 +264,32 @@ namespace Common.IoC
             }
         }
 
-        private static Type GetInterfaceInType(Type handlerType, Type handlerInferface) =>
-                handlerType.GetInterfaces()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="genericInferface"></param>
+        /// <returns></returns>
+        private static Type GetGenericInterfacesInType(Type type, Type genericInferface) =>
+                type.GetInterfaces()
                     .FirstOrDefault(i => i.GetTypeInfo().IsGenericType &&
-                                         i.GetGenericTypeDefinition() == handlerInferface);
+                                         i.GetGenericTypeDefinition() == genericInferface);
 
-        private static IEnumerable<Type> HandlersImplementingInterfaceInAssembly(Assembly assembly,
-                Type handlerInferface) =>
+        /// <summary>
+        /// Get the Types implementing the generic interface provided
+        /// </summary>
+        /// <param name="assembly">Assembly to scan</param>
+        /// <param name="genericInferface">Generic Interface</param>
+        /// <returns>All types implementing the generic interface</returns>
+        private static IEnumerable<Type> GetGenericTypesImplementingInterfaceInAssembly(Assembly assembly,
+                Type genericInferface) =>
                 assembly.GetTypes().Where(t => t.GetInterfaces().Any(i => i.GetTypeInfo().IsGenericType &&
                                                                           i.GetGenericTypeDefinition() ==
-                                                                          handlerInferface));
+                                                                          genericInferface));
 
+        /// <summary>
+        /// Scan all assemblies matching the criteria used to locate Commands and Handlers
+        /// </summary>
         private static IEnumerable<Assembly> AssembliesWithHandlers
         {
             get
