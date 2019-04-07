@@ -27,7 +27,7 @@ namespace Service.Transaction.IntegrationTests
             };
             
             var command = new CreateTransactionCommand(transaction);
-            var response = await ServiceManager.ProcessCommandAsync<int>(command);
+            var response = await mediator.ProcessCommandAsync<int>(command);
 
             Assert.IsTrue(response.Successful, "The command response is successful");
 

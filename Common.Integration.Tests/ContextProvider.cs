@@ -44,7 +44,7 @@ namespace Common.IntegrationTests
                 var databaseType = ApplicationConfiguration?.GetValue<DatabaseType>("DatabaseType") ?? DatabaseType.SQLServer;                
                 _requiresDbDeletion = databaseType == DatabaseType.SQLServer;
                 
-                IocConfig.RegisterContext(serviceCollection, null);
+                DependencyInjectionConfiguration.RegisterContext(serviceCollection, null);
 
                 _serviceProvider = serviceCollection.BuildServiceProvider();
                 return _serviceProvider;

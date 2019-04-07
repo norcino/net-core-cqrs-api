@@ -68,19 +68,19 @@ namespace Application.Api
             services.AddSingleton<IConfiguration>(Configuration);
             
             // Entity Framework context registration
-            IocConfig.RegisterContext(services, HostingEnvironment);
+            DependencyInjectionConfiguration.RegisterContext(services, HostingEnvironment);
             
-            // Register service manager
-            IocConfig.RegisterServiceManager(services);
+            // Register Mediators
+            DependencyInjectionConfiguration.RegisterMediator(services);
 
-            // Register the validators
-            IocConfig.RegisterValidators(services);
+            // Register the Validators
+            DependencyInjectionConfiguration.RegisterValidators(services);
 
-            // Register all the query handlers with the related decoracors
-            IocConfig.RegisterQueryHandlers(services);
+            // Register all the query handlers with the related decorators
+            DependencyInjectionConfiguration.RegisterQueryHandlers(services);
 
-            // Register all the command handlers with the related decoracors
-            IocConfig.RegisterCommandHandlers(services);
+            // Register all the command handlers with the related decorators
+            DependencyInjectionConfiguration.RegisterCommandHandlers(services);
 
             // Add framework services.
             services.AddOData();

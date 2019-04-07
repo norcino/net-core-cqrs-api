@@ -21,7 +21,7 @@ namespace Service.Category.IntegrationTests
             category.Description = category.Description + "2";
 
             var command = new UpdateCategoryCommand(category.Id, category);
-            var response = await ServiceManager.ProcessCommandAsync<Data.Entity.Category>(command);
+            var response = await mediator.ProcessCommandAsync<Data.Entity.Category>(command);
 
             Assert.IsTrue(response.Successful, "The command response is successful");
 

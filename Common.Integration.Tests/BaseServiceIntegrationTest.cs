@@ -6,11 +6,11 @@ namespace Common.IntegrationTests
 {    
     public class BaseServiceIntegrationTest : BaseIdempotentIntegrationTest
     {
-        protected IServiceManager ServiceManager;
+        protected IMediator mediator;
 
         public BaseServiceIntegrationTest() : base()
         {
-            ServiceManager = new ServiceManager(ServiceProvider);
+            mediator = new Mediator(ServiceProvider);
         }
     }
 }

@@ -29,7 +29,7 @@ namespace Service.Transaction.IntegrationTests
             transaction.Recorded = transaction.Recorded.AddDays(10);
 
             var command = new UpdateTransactionCommand(transaction.Id, transaction);
-            var response = await ServiceManager.ProcessCommandAsync<Data.Entity.Transaction>(command);
+            var response = await mediator.ProcessCommandAsync<Data.Entity.Transaction>(command);
 
             Assert.IsTrue(response.Successful, "The command response is successful");
 

@@ -14,7 +14,7 @@ namespace Common.IntegrationTests
     public abstract class BaseIdempotentIntegrationTest
     {
         protected IDbContextTransaction Transaction;        
-        private IHouseKeeperContext _context;
+        protected IHouseKeeperContext _context;
         protected IHouseKeeperContext Context
         {
             get
@@ -35,11 +35,11 @@ namespace Common.IntegrationTests
                 .Build();
             serviceCollection.AddSingleton<IConfiguration>(configuration);
 
-            IocConfig.RegisterContext(serviceCollection, null);
-            IocConfig.RegisterServiceManager(serviceCollection);
-            IocConfig.RegisterValidators(serviceCollection);
-            IocConfig.RegisterQueryHandlers(serviceCollection);
-            IocConfig.RegisterCommandHandlers(serviceCollection);
+            DependencyInjectionConfiguration.RegisterContext(serviceCollection, null);
+            DependencyInjectionConfiguration.RegisterMediator(serviceCollection);
+            DependencyInjectionConfiguration.RegisterValidators(serviceCollection);
+            DependencyInjectionConfiguration.RegisterQueryHandlers(serviceCollection);
+            DependencyInjectionConfiguration.RegisterCommandHandlers(serviceCollection);
 
             ServiceProvider = serviceCollection.BuildServiceProvider();
 
