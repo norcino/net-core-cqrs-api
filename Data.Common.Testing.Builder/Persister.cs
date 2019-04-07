@@ -24,7 +24,7 @@ namespace Data.Common.Testing.Builder
             _context = ContextProvider.GetContext();
             _dbSet = _context.Set<TE>();
         }
-
+        
         public Persister(IHouseKeeperContext context)
         {
             _context = context;
@@ -35,7 +35,11 @@ namespace Data.Common.Testing.Builder
         public virtual TE Persist()
         {
             var entity = new Builder<TE>().Build();
-            return Persist(ResetKey(entity));
+            entity = ResetKey(entity);
+            entity = AddRequiredForeignKeyEntities(entity);
+            _dbSet.Add(entity);
+            _context.SaveChanges();
+            return entity;
         }
 
         /// <inheritdoc cref="IPersister{TE}.Persist(TE)"/>
@@ -56,10 +60,12 @@ namespace Data.Common.Testing.Builder
             for (var i = 1; i <= numberOfEntities; i++)
             {
                 var entity = new Builder<TE>().Build();
-                entity = ResetKey(entity);
+                entity = ResetKey(entity);                
                 entitySetupAction?.Invoke(entity, i);
+
+                entity = AddRequiredForeignKeyEntities(entity);
                 result.Add(entity);
-            }
+            }            
 
             _dbSet.AddRange(result);
             _context.SaveChanges();
@@ -72,11 +78,61 @@ namespace Data.Common.Testing.Builder
             if (entitySetupAction == null)
                 throw new ArgumentNullException($"{nameof(entitySetupAction)}");
 
+            // Generate the custom entity using the builder and the optional initialization action
             var entity = new Builder<TE>().Build();
-            entitySetupAction(entity);
+            entitySetupAction?.Invoke(entity);
+
+            entity = AddRequiredForeignKeyEntities(entity);
+
             _dbSet.Add(entity);
             _context.SaveChanges();
             return entity;
+        }
+
+        /// <summary>
+        /// Add required One To Many foreign keys, this method is vulnerable to circular reference
+        /// </summary>
+        /// <param name="entity">Entity where the foreign keys will be added</param>
+        /// <returns>Original entity with the added foreign keys</returns>
+        private TE AddRequiredForeignKeyEntities(TE entity)
+        {
+            // Get foreign keys of the entity type
+            var foreignKeys = _context.Model.GetEntityTypes()
+                .FirstOrDefault(m => m.ClrType == typeof(TE))?
+                .GetForeignKeys().Where(fk => fk.IsRequired);
+
+            // For each Foreign key with multiplicity one, create and save the Principal entity
+            // Update the foreign key property and the Navigation property            
+            foreach(var foreignKey in foreignKeys)
+            {
+                var principalEntityType = foreignKey.PrincipalEntityType.ClrType;
+
+                // Get Principal type and generate persister for it
+                var persisterType = typeof(Persister<>).MakeGenericType(principalEntityType);
+                var persister = Activator.CreateInstance(persisterType);
+
+                // Get and invoke the Persist method
+                var buildMethod = persisterType.GetMethods().Single(x =>
+                    x.Name == "Persist" && !x.IsGenericMethod && !x.GetParameters().Any());
+                var persistedEntity = buildMethod.Invoke(persister, null);
+
+                // Assign navigation property the created principal type                
+                var navigationsOfTheFk = foreignKey.GetNavigations()
+                    .FirstOrDefault(n => n.ClrType == principalEntityType);
+
+                navigationsOfTheFk?.PropertyInfo?.SetValue(entity, persistedEntity);
+
+                // Fore each property of the principal PrimaryKey
+                foreach (var primaryKeyProperty in foreignKey.PrincipalKey.Properties)
+                {
+                    // Save the value to the corresponding ForeignKey property
+                    var primaryKeyPropertyValue = primaryKeyProperty.PropertyInfo.GetValue(persistedEntity);
+                    var foreingKeyPropertyInfo = foreignKey?.Properties.FirstOrDefault(property => property.FindPrincipal() == primaryKeyProperty);
+                    foreingKeyPropertyInfo?.PropertyInfo?.SetValue(entity, primaryKeyPropertyValue);
+                }
+            }
+
+            return entity;          
         }
 
         /// <summary>
@@ -84,9 +140,9 @@ namespace Data.Common.Testing.Builder
         /// </summary>
         /// <param name="entity">Entity where the key values are reset</param>
         /// <returns>Entity with reset keys values</returns>
-        private TE ResetKey(TE entity)
+        private T ResetKey<T>(T entity)
         {
-            var keys = _context.Model.FindEntityType(typeof(TE))?.FindPrimaryKey();
+            var keys = _context.Model.FindEntityType(entity.GetType())?.FindPrimaryKey();
             var properties = keys?.Properties;
 
             if (properties == null)

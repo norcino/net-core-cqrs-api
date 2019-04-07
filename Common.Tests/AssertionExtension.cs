@@ -152,6 +152,12 @@ namespace Common.Tests.FluentAssertion
             assertObject.ExpectedObject = comparedObject;
             return new AssertObject<T>(assertObject.ComparedObject);
         }
+
+        public static AssertObject<T> Has<T>(this AssertObject<T> assertObject, Func<T, bool> assertions)
+        {
+            Assert.IsTrue(assertions(assertObject.Object));
+            return assertObject;
+        }
         #endregion
 
         #region Collections

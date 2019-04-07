@@ -23,7 +23,7 @@ namespace Service.Category.IntegrationTests
             };
 
             var command = new CreateCategoryCommand(category);
-            var response = await ServiceManager.ProcessCommandAsync<int>(command);
+            var response = await mediator.ProcessCommandAsync<int>(command);
 
             Assert.That.This(response.Successful).IsTrue("The command response is successful");
            

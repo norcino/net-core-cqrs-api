@@ -25,7 +25,7 @@ namespace Service.Category.IntegrationTests
             await Context.SaveChangesAsync();
 
             var query = new GetCategoryByIdQuery(category.Id);
-            var dbCategory = await ServiceManager.ProcessQueryAsync(query);
+            var dbCategory = await mediator.ProcessQueryAsync(query);
 
             Assert.IsNotNull(dbCategory);
 

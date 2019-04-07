@@ -33,14 +33,11 @@ namespace Application.Api.IntegrationTests
         [TestMethod]
         public async Task GET_support_orderBy_Description_descending()
         {
-            var category = Persister<Category>.New().Persist();
             const int expectedTransactions = 5;
 
             _transactionPersister.Persist(expectedTransactions, (t, i) =>
             {
                 t.Description = (expectedTransactions - i).ToString();
-                t.Category = category;
-                t.CategoryId = category.Id;
             });
 
             var response = await _client.GetAsync("/api/transaction?$orderby=Description desc");
@@ -57,14 +54,11 @@ namespace Application.Api.IntegrationTests
         [TestMethod]
         public async Task GET_support_orderBy_Description_ascending()
         {
-            var category = Persister<Category>.New().Persist();
             const int expectedTransactions = 5;
 
             _transactionPersister.Persist(expectedTransactions, (t, i) =>
             {
                 t.Description = i.ToString();
-                t.Category = category;
-                t.CategoryId = category.Id;
             });
 
             var response = await _client.GetAsync("/api/transaction?$orderby=Description");
@@ -81,12 +75,9 @@ namespace Application.Api.IntegrationTests
         [TestMethod]
         public async Task GET_return_all_transactions()
         {
-            var category = Persister<Category>.New().Persist();
             _transactionPersister.Persist(10, (t, i) =>
             {
                 t.Description = i.ToString();
-                t.Category = category;
-                t.CategoryId = category.Id;
             });
 
             var categories = await _client.GetAsync("/api/transaction");
@@ -163,12 +154,7 @@ namespace Application.Api.IntegrationTests
         [TestMethod]
         public async Task GET_byId_returns_ok_200_when_entity_with_specified_Id_exists()
         {
-            var category = Persister<Category>.New().Persist();
-            var transaction = _transactionPersister.Persist(t =>
-            {
-                t.Category = category;
-                t.CategoryId = category.Id;
-            });
+            var transaction = _transactionPersister.Persist();
             var response = await _client.GetAsync($"/api/transaction/{transaction.Id}");
             Assert.That.IsOkHttpResponse(response);
         }
@@ -176,12 +162,7 @@ namespace Application.Api.IntegrationTests
         [TestMethod]
         public async Task GET_byId_returns_correct_and_complete_entity_with_the_specified_Id()
         {
-            var category = Persister<Category>.New().Persist();
-            var expectedTransaction = _transactionPersister.Persist(t =>
-            {
-                t.Category = category;
-                t.CategoryId = category.Id;
-            });
+            var expectedTransaction = _transactionPersister.Persist();
 
             var response = await _client.GetAsync($"/api/transaction/{expectedTransaction.Id}");
             var transaction = response.To<Transaction>();

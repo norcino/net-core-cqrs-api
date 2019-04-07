@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using Common.Validation;
 using Data.Context;
-using Data.Entity;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,15 +13,11 @@ using Microsoft.Extensions.Logging;
 using Service.Common;
 using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.Logging.Console;
-using Service.Category.Command;
-using Service.Category.Validator;
 using Service.Common.CommandAttributes;
 using Service.Common.CommandHandlerDecorators;
 using Service.Common.QueryHandlerDecorators;
 using Microsoft.Extensions.Configuration;
 using System.Configuration;
-using Service.Transaction.Command;
-using Service.Transaction.Validator;
 
 namespace Common.IoC
 {
@@ -43,7 +38,7 @@ namespace Common.IoC
             try
             {
                 databaseType = configuration?.GetValue<DatabaseType>("DatabaseType") ?? DatabaseType.SQLServer;
-            }catch
+            } catch
             {
                 MyLoggerFactory.CreateLogger<IocConfig>()?.LogWarning("Missing or invalid configuration: DatabaseType");
                 databaseType = DatabaseType.SQLServer;
@@ -139,12 +134,12 @@ namespace Common.IoC
             }       
         }
 
-        public static void RegisterServiceManager(IServiceCollection services)
+        public static void Registermediator(IServiceCollection services)
         {
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
 
-            services.AddSingleton<IServiceManager>(service => new ServiceManager(service));
+            services.AddSingleton<IMediator>(service => new Mediator(service));
         }
 
         /// <summary>
