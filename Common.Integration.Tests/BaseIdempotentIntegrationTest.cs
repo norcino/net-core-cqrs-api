@@ -14,7 +14,7 @@ namespace Common.IntegrationTests
     public abstract class BaseIdempotentIntegrationTest
     {
         protected IDbContextTransaction Transaction;        
-        private IHouseKeeperContext _context;
+        protected IHouseKeeperContext _context;
         protected IHouseKeeperContext Context
         {
             get

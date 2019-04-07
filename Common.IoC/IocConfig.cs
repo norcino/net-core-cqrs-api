@@ -114,7 +114,7 @@ namespace Common.IoC
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
 
-            // TODO: Make depenendcy injection setup automatic for validators
+            // TODO: Make dependency injection setup automatic for validators
 
             services.AddTransient(typeof(ICommandValidator<CreateCategoryCommand>), typeof(CreateCategoryCommandValidator));
             services.AddTransient(typeof(ICommandValidator<CreateTransactionCommand>), typeof(CreateTransactionCommandValidator));

@@ -15,9 +15,7 @@ namespace Service.Transaction.IntegrationTests
         [TestMethod]
         public async Task Handler_get_transaction_by_id_with_the_correct_properties()
         {
-            var category = Persister<Data.Entity.Category>.New().Persist();
-            var transaction = Persister<Data.Entity.Transaction>.New()
-                .Persist(t => t.CategoryId = category.Id);
+            var transaction = Persister<Data.Entity.Transaction>.New().Persist();
                         
             var query = new GetTransactionByIdQuery(transaction.Id);
             var dbTransaction = await ServiceManager.ProcessQueryAsync(query);
