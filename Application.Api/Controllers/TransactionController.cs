@@ -13,17 +13,17 @@ namespace Application.Api.Controllers
     [Route("api/[controller]")]
     public class TransactionController : BaseController
     {
-        private readonly IServiceManager _serviceManager;
+        private readonly IMediator _mediator;
 
-        public TransactionController(IServiceManager serviceManager)
+        public TransactionController(IMediator mediator)
         {
-            _serviceManager = serviceManager;
+            _mediator = mediator;
         }
 
         [HttpGet("{id}", Name = "GetTransactionById")]
         public async Task<ActionResult> GetByIdAsync(int id)
         {
-            var result = await _serviceManager.ProcessQueryAsync(new GetTransactionByIdQuery(id));
+            var result = await _mediator.ProcessQueryAsync(new GetTransactionByIdQuery(id));
 
             if (result == null)
             {
@@ -36,13 +36,13 @@ namespace Application.Api.Controllers
         public Task<List<Transaction>> Get(ODataQueryOptions<Transaction> queryOptions)
         {
             var query = ApplyODataQueryConditions<Transaction, GetTransactionsQuery>(queryOptions, new GetTransactionsQuery());
-            return _serviceManager.ProcessQueryAsync(query);
+            return _mediator.ProcessQueryAsync(query);
         }
 
         [HttpPost]
         public async Task<ActionResult> PostAsync([FromBody] Transaction transaction)
         {
-            var result = await _serviceManager.ProcessCommandAsync<int>(new CreateTransactionCommand(transaction));
+            var result = await _mediator.ProcessCommandAsync<int>(new CreateTransactionCommand(transaction));
 
             if (result.Successful)
             {
@@ -55,7 +55,7 @@ namespace Application.Api.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> PutAsync(int id, [FromBody] Transaction transaction)
         {
-            var result = await _serviceManager.ProcessCommandAsync<int>(new UpdateTransactionCommand(id, transaction));
+            var result = await _mediator.ProcessCommandAsync<int>(new UpdateTransactionCommand(id, transaction));
             return new OkObjectResult(result);
         }
     }

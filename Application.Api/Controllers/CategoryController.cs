@@ -13,23 +13,23 @@ namespace Application.Api.Controllers
     [Route("api/[controller]")]
     public class CategoryController : BaseController
     {
-        private readonly IServiceManager _serviceManager;
+        private readonly IMediator _mediator;
 
-        public CategoryController(IServiceManager serviceManager)
+        public CategoryController(IMediator mediator)
         {
-            _serviceManager = serviceManager;
+            _mediator = mediator;
         }
 
         public Task<List<Category>> Get(ODataQueryOptions<Category> queryOptions)
         {
             var query = ApplyODataQueryConditions<Category, GetCategoriesQuery>(queryOptions, new GetCategoriesQuery());
-            return _serviceManager.ProcessQueryAsync(query);
+            return _mediator.ProcessQueryAsync(query);
         }
         
         [HttpGet("{id}", Name = "GetCategoryById")]
         public async Task<ActionResult> Get(int id)
         {
-            var result = await _serviceManager.ProcessQueryAsync(new GetCategoryByIdQuery(id));
+            var result = await _mediator.ProcessQueryAsync(new GetCategoryByIdQuery(id));
 
             if (result == null)
             {
@@ -42,7 +42,7 @@ namespace Application.Api.Controllers
         [HttpPost]
         public async Task<ActionResult> PostAsync([FromBody] Category category)
         {
-            var result = await _serviceManager.ProcessCommandAsync<int>(new CreateCategoryCommand(category));
+            var result = await _mediator.ProcessCommandAsync<int>(new CreateCategoryCommand(category));
 
             if (result.Successful)
             {

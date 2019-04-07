@@ -114,7 +114,7 @@ namespace Common.IoC
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
 
-            // TODO: Make depenendcy injection setup automatic for validators
+            // TODO: Make dependency injection setup automatic for validators
 
             services.AddTransient(typeof(ICommandValidator<CreateCategoryCommand>), typeof(CreateCategoryCommandValidator));
             services.AddTransient(typeof(ICommandValidator<CreateTransactionCommand>), typeof(CreateTransactionCommandValidator));
@@ -123,12 +123,12 @@ namespace Common.IoC
             services.AddTransient<IValidator<Category>>(validator => new CategoryValidator());
         }
 
-        public static void RegisterServiceManager(IServiceCollection services)
+        public static void Registermediator(IServiceCollection services)
         {
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
 
-            services.AddSingleton<IServiceManager>(service => new ServiceManager(service));
+            services.AddSingleton<IMediator>(service => new Mediator(service));
         }
 
         /// <summary>

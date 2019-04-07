@@ -28,56 +28,18 @@ namespace Data.Common.Testing.Builder.Tests
                 Assert.That.This(Context.Categories.FirstOrDefault(current => current.Id == c.Id)).HasSameProperties(c)
             );
         }
-
-        //[TestMethod]
-        //public void TestMethod1()
-        //{
-        //    var category = Builder<Category>.New().Build();
-        //    var category2 = Builder<Category>.New().BuildMany(2);
-        //    var category3 = Builder<Category>.New().BuildMany(3, (c, i) =>
-        //    {
-        //        c.Name = $"Name_{i}";
-        //    });
-
-        //    var categoryF = Builder<Category>.New().Build((c) =>
-        //    {
-        //        c.Name = "Name_asdasdad";
-        //        c.Active = false;
-        //    });
-
-        //    Assert.AreEqual(2, category2.Count);
-        //    Assert.AreEqual(3, category3.Count);
-            
-        //     var context = ContextProvider.GetContext();
-
-        //    Assert.AreEqual(0, context.Categories.Count());
-
-        //    var persister = new Persister<Category>(context);
-
-        //    var ct = persister.Persist(c =>
-        //        {
-        //            c.Name = "Manuel";
-        //            c.Description = "Bello";
-        //        });
-
-        //    Assert.IsNotNull(ct);
-
-        //    Assert.AreEqual(1, context.Categories.Count());
-
-        //    var loaded = context.Categories.Find(ct.Id);
-            
-        //    Assert.AreEqual("Manuel", loaded.Name);
-        //    Assert.AreEqual("Bello", loaded.Description);
-
-        //    persister.Persist(100, (c, i) =>
-        //    {
-        //        c.Name = $"Manuel_{i}";
-        //        c.Description = "Bello";
-        //        c.Active = i % 2 == 0;
-        //    });
-
-        //    var tmp = context.Categories.ToList();
-        //    Assert.AreEqual(101, context.Categories.Count());
-        //}
+        
+        [TestMethod]
+        public void Persist_should_create_necessary_foreign_key_entities_and_assign_it_to_the_created_entity()
+        {
+            var transaction = Persister<Transaction>.New().Persist();
+            Assert.That.This(transaction).IsNotNull()
+                .And()
+                .Has(t => t.Category != null)
+                .And()
+                .Has(t => t.CategoryId > 0)
+                .And()
+                .Has(t => t.CategoryId == t.Category.Id);
+        }
     }
 }

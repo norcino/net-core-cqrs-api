@@ -71,7 +71,7 @@ namespace Application.Api
             IocConfig.RegisterContext(services, HostingEnvironment);
             
             // Register service manager
-            IocConfig.RegisterServiceManager(services);
+            IocConfig.Registermediator(services);
 
             // Register the validators
             IocConfig.RegisterValidators(services);
