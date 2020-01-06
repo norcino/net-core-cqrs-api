@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2024
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29519.87
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application.Api", "Application.Api\Application.Api.csproj", "{4BC65E4C-63ED-4505-B7ED-7ACA79DC3E1B}"
 EndProject
@@ -57,6 +57,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		Readme.md = Readme.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CQMD", "CQMD\CQMD.csproj", "{3AF4CB6F-AB60-4951-A09A-DBC7C504C34F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -144,6 +146,10 @@ Global
 		{CCCA6038-D9A1-4B82-8148-5D58F6F57439}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCCA6038-D9A1-4B82-8148-5D58F6F57439}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CCCA6038-D9A1-4B82-8148-5D58F6F57439}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3AF4CB6F-AB60-4951-A09A-DBC7C504C34F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AF4CB6F-AB60-4951-A09A-DBC7C504C34F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AF4CB6F-AB60-4951-A09A-DBC7C504C34F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AF4CB6F-AB60-4951-A09A-DBC7C504C34F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
