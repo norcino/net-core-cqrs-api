@@ -37,9 +37,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common.IoC\Common.IoC.csproj" />
+    <ProjectReference Include="..\CQMD\CQMD.csproj" />
     <ProjectReference Include="..\Data.Entity\Data.Entity.csproj" />
     <ProjectReference Include="..\Service.Category\Service.Category.csproj" />
-    <ProjectReference Include="..\Service.Common\Service.Common.csproj" />
     <ProjectReference Include="..\Service.Transaction\Service.Transaction.csproj" />
   </ItemGroup>
   <ItemGroup>

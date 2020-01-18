@@ -5,11 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Ioc\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.2.0" />
   </ItemGroup>
 

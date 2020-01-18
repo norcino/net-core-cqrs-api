@@ -29,9 +29,9 @@
     <ProjectReference Include="..\Common.Integration.Tests\Common.IntegrationTests.csproj" />
     <ProjectReference Include="..\Common.IoC\Common.IoC.csproj" />
     <ProjectReference Include="..\Common.Tests\Common.Tests.csproj" />
+    <ProjectReference Include="..\CQMD\CQMD.csproj" />
     <ProjectReference Include="..\Data.Common.Testing.Builder\Data.Common.Testing.Builder.csproj" />
     <ProjectReference Include="..\Service.Category\Service.Category.csproj" />
-    <ProjectReference Include="..\Service.Common\Service.Common.csproj" />
   </ItemGroup>
 
 </Project>

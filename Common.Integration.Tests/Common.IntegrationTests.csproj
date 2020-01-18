@@ -17,7 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Application.Api\Application.Api.csproj" />
     <ProjectReference Include="..\Common.IoC\Common.IoC.csproj" />
-    <ProjectReference Include="..\Service.Common\Service.Common.csproj" />
+    <ProjectReference Include="..\CQMD\CQMD.csproj" />
   </ItemGroup>
 
 </Project>

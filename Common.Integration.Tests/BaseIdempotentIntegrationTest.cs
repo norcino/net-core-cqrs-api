@@ -36,10 +36,7 @@ namespace Common.IntegrationTests
             serviceCollection.AddSingleton<IConfiguration>(configuration);
 
             DependencyInjectionConfiguration.RegisterContext(serviceCollection, null);
-            DependencyInjectionConfiguration.RegisterMediator(serviceCollection);
-            DependencyInjectionConfiguration.RegisterValidators(serviceCollection);
-            DependencyInjectionConfiguration.RegisterQueryHandlers(serviceCollection);
-            DependencyInjectionConfiguration.RegisterCommandHandlers(serviceCollection);
+            serviceCollection.AddCqmd();
 
             ServiceProvider = serviceCollection.BuildServiceProvider();
 

@@ -1,9 +1,11 @@
 ﻿using System.Transactions;
+using Common.Log;
 
 namespace Service.Common
 {
     public interface ICommand
     {
+        LogInfo ToLog();
     }
 
     public interface ICommand<TResult> : ICommand

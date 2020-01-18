@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Service.Common;
 using Service.Transaction.Query;
+using Data.Common;
 
 namespace Service.Transaction.QueryHandler
 {

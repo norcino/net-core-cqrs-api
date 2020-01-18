@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using Service.Common.QueryTraits;
-using System.Linq.Dynamic.Core;
 using Microsoft.EntityFrameworkCore;
 
 namespace Service.Common
@@ -13,11 +12,12 @@ namespace Service.Common
             {
                 var orderIndex = 0;
                 var dynamicOrderString = $"{o.OrderBy[orderIndex].PropertyName} {o.OrderBy[orderIndex].Order}";
+
                 for (orderIndex++; orderIndex < o.OrderBy.Count; orderIndex++)
                 {
                     dynamicOrderString += $", {o.OrderBy[orderIndex].PropertyName} {o.OrderBy[orderIndex].Order}";
                 }
-                queryable = queryable.OrderBy(dynamicOrderString);
+                //queryable = queryable.OrderBy(dynamicOrderString);
             }
 
             if (query is ICanExpand e && e.Expand?.Length > 0)
